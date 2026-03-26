@@ -10,20 +10,23 @@ namespace FinalProject_QuantitativeMethods
         static int _column = 0;
         static int[][]? array2D;
         static string[][]? tempArr;
+        static int[][]? step2Arr2D;
         static int numberOfLinesToCoverZero;
 
-        public static async Task  MethodAsync<T>(List<T> rowNames, List<T> columnNames, int[][] arr)
+        public static async Task MethodAsync<T>(List<T> rowNames, List<T> columnNames, int[][] arr)
         {
             _row = rowNames.Count;
             _column = columnNames.Count;
 
-            array2D = new int[_row][];
-            tempArr = new string[_row][];
+            array2D = new int[_row][]; // holds the actual matrix
+            step2Arr2D = new int[_row][];
+            tempArr = new string[_row][]; // holds the matrix with both horizontal and vertical lines
 
-            for (int y = 0 ; y < _row; y++)
+            for (int y = 0; y < _row; y++)
             {
                 array2D[y] = new int[_column];
-                for (int x = 0 ; x < _column; x++)
+                step2Arr2D[y] = new int[_column];
+                for (int x = 0; x < _column; x++)
                 {
                     array2D[y][x] = arr[y][x];
                     Console.Write(arr[y][x]);
@@ -31,7 +34,7 @@ namespace FinalProject_QuantitativeMethods
                 Console.WriteLine(" ");
             }
 
-            // Printing the current matrix before the first step
+            // Print the current matrix before the first step
             PrintMatrix(rowNames, columnNames, arr);
 
             array2D = Step1(arr);
@@ -42,31 +45,17 @@ namespace FinalProject_QuantitativeMethods
 
             PrintMatrix(rowNames, columnNames, array2D);
 
-            //if (Step3(array2D, rowNames) == true)
-            //{
-            //    PrintMatrix(rowNames, columnNames, array2D);
-            //}
+
+            step2Arr2D = array2D;
             tempArr = await Step3Async(array2D, rowNames);
 
-            //if (tempArr == null) { break; }
 
             PrintTempMatrix(rowNames, columnNames, tempArr);
-            //for (int i = 0; i < tempArr.Length; i++)
-            //{
-            //    for (int j = 0; j < tempArr[i].Length; j++)
-            //    {
-            //        Console.Write(tempArr[i][j]);
-            //    }
-            //    Console.WriteLine(" ");
-            //}
-            for (int i = 0; i < 3; i++)
-            {
-                Console.Write("hello world");
-            }
 
-            //resultArr = await Step4Async(array2D, rownames);
+            var step4result = await Step4Async(tempArr, step2Arr2D, rowNames);
+            bool isItpass = CountTheCoverLines(step4result, arr.Length);
 
-           // PrintTempMatrix(rowNames, columnNames, tempArr);
+            Console.WriteLine(isItpass);
         }
 
         #region -- The Steps --
@@ -100,7 +89,7 @@ namespace FinalProject_QuantitativeMethods
             List<int> result = new List<int>();
             int columnMin;
 
-            for(int i = 0; i < Dimension; i++)
+            for (int i = 0; i < Dimension; i++)
             {
                 new2DArrayValues[i] = new int[Dimension];
             }
@@ -178,18 +167,19 @@ namespace FinalProject_QuantitativeMethods
             while (loopIterator < arr[0].Length)
             {
                 if (loopIterator == 0)
-                { 
+                {
                     //For row
                     for (int i = 0; i < arr.Length; i++)
                     {
                         string targetRow = string.Format("Row {0}", i);
-                        if (values[targetRow] >= (arr.Length % 2 == 0 ? (arr.Length / 2) : (arr.Length / 2) + 1))
+                        // if zero is equal more than half size of the dimension then consider to make it cross or cover it
+                        if (values[targetRow] >= (arr.Length % 2 == 0 ? (arr.Length / 2) : (arr.Length / 2) + 1)) 
                         {
                             isValueCover[targetRow] = true;
                             currentNumberOfLines++;
                             numOfValues--;
 
-                            for(int j = 0; j < arr.Length; j++)
+                            for (int j = 0; j < arr.Length; j++)
                             {
                                 tempMatrix[i][j] = "X";
                             }
@@ -202,7 +192,7 @@ namespace FinalProject_QuantitativeMethods
                             }
                         }
                     }
-
+                    //For column
                     for (int i = 0; i < arr.Length; i++)
                     {
                         string targetColumn = string.Format("Column {0}", i);
@@ -232,19 +222,6 @@ namespace FinalProject_QuantitativeMethods
                         }
                     }
                 }
-                //PrintMatrixString(rowNames, rowNames, tempMatrix);
-                //PrintLoop(tempMatrix.Length, tempMatrix);
-                //if (numOfValues  >= 1)
-                //{
-                //    for (int i = 0; i < tempMatrix.Length; i++)
-                //    {
-                //        for (int j = 0; j < tempMatrix[i].Length; j++)
-                //        {
-                //            Console.Write(tempMatrix[i][j]);
-                //        }
-                //        Console.WriteLine(" ");
-                //    }
-                //}
                 numberOfLinesToCoverZero = currentNumberOfLines;
                 Console.WriteLine("Number of lines " + numberOfLinesToCoverZero);
                 if (currentNumberOfLines == rowNames.Count)
@@ -252,7 +229,7 @@ namespace FinalProject_QuantitativeMethods
 
                 int nullCounter = 0;
 
-                for(int i = 0; i < tempMatrix.Length; i++)
+                for (int i = 0; i < tempMatrix.Length; i++)
                 {
                     if (tempMatrix[i].Contains(null))
                     {
@@ -263,7 +240,7 @@ namespace FinalProject_QuantitativeMethods
                 if (nullCounter == 0)
                 {
                     bool isAllZeroNotCovered = FindVal(tempMatrix, 0);
-                    if(!isAllZeroNotCovered)
+                    if (!isAllZeroNotCovered)
                     {
                         for (int i = 0; i < tempMatrix.Length; i++)
                         {
@@ -282,8 +259,8 @@ namespace FinalProject_QuantitativeMethods
                     {
                         for (int i = 0; i < tempMatrix.Length; i++)
                         {
-                           for (int j = 0;j < tempMatrix[i].Length;j++)
-                           {
+                            for (int j = 0; j < tempMatrix[i].Length; j++)
+                            {
                                 double random = Random.Shared.NextDouble();
 
                                 if (tempMatrix[i][j] == "0")
@@ -317,16 +294,78 @@ namespace FinalProject_QuantitativeMethods
                 loopIterator++;
             }
 
-
             return await Task.FromResult(tempMatrix);
         }
 
-        //public static async Task<string[][]> Step4<T>(int[][] arr, T[] rowNames)
-        //{
+        public static async Task<string[][]> Step4Async<T>(string[][] arr, int[][] step2arr, List<T> rowNames)
+        {
+            //List<string> uncoveredValues = new List<string>();
+            string[][] Arr2D = new string[arr.Length][];
+            Arr2D = Initializer(Arr2D);
+            int minValue;
+            //IEnumerable<string> uncoveredValues = Enumerable.Empty<string>(); // This holds the uncovered values
+            Dictionary<string, int> uncoveredValues = new Dictionary<string, int>(); // This holds the uncovered values and their coordinates
+            List<int> resultNewUncoverdValues = new List<int>();
+
+            // Filters the arr and gets the uncovered values
+            for (int i = 0; i < arr.Length; i++)
+            {
+                //uncoveredValues = Filter2DArr(arr, (n) => n != "X");
+                uncoveredValues = FilterAssignToDict(arr, (n) => n != "x");
+            }
+
+            //PrintLoop(uncoveredValues.Count(), uncoveredValues);
+
+            minValue = GetMin(uncoveredValues.Values);
+            //dynamic uncoveredValuesToSub = uncoveredValues.Select(n => int.Parse(n)).ToArray();
+            dynamic uncoveredValuesToSub = uncoveredValues.Values.Select(n => int.Parse(n.ToString())).ToArray();
+            resultNewUncoverdValues = SubtractionWithMinValue((int[])uncoveredValuesToSub, n => n - minValue).ToList();
+            
+            //PrintLoop(resultNewUncoverdValues.Count(), resultNewUncoverdValues);
+
+            Dictionary<string, int> intersectedValues = new Dictionary<string, int>();
+
+            intersectedValues = CheckIntersect(arr, step2arr);
+
+            Console.WriteLine("The intercepted values");
+            foreach (var value in intersectedValues.Keys)
+            {
+                string[] keys = new string[2];
+                keys = value.ToString().Split(',');
+
+                int targetedValue = intersectedValues[value];
+
+                //add the min value to the corner points or the intersected points
+                step2arr[Convert.ToInt16(keys[0])][Convert.ToInt16(keys[1])] = targetedValue +  minValue;
+            }
+
+            for (int i = 0; i < arr.Length; i++)
+            {
+                // need position
+                for (int j = 0; j < arr[i].Length; j++)
+                {
+                    if ((step2arr[i][j]).ToString() != "X" ) //&& !intersectedValues.ContainsValue(step2arr[i][j]) )
+                    {
+                        for (int k = 0; k < resultNewUncoverdValues.Count(); k++)
+                        {
+                            string key = string.Format("{0},{1}", i, j);
+                            if (step2arr[i][j] == (resultNewUncoverdValues[k] + minValue) && uncoveredValues.ContainsKey(key))
+                                step2arr[i][j] = resultNewUncoverdValues[k];
+                        }
+                    }
+                }
+            }
 
 
-        //    return arr;
-        //}
+
+            PrintMatrix(rowNames, rowNames, step2arr);
+
+            Arr2D = await Step3Async(step2arr, rowNames);
+
+            PrintTempMatrix(rowNames, rowNames, Arr2D);
+
+            return Arr2D;
+        }
 
         #endregion
 
@@ -335,7 +374,7 @@ namespace FinalProject_QuantitativeMethods
         {
             //for calculating the space for column names
             int space = 0;
-            for(int i = 0; i < rowNames.Count; i++)
+            for (int i = 0; i < rowNames.Count; i++)
             {
                 if (i == 0)
                 {
@@ -351,7 +390,7 @@ namespace FinalProject_QuantitativeMethods
 
             Console.WriteLine("| ");
 
-            
+
             // For each value in Matrix
             for (int y = 0; y < columnNames.Count; y++)
             {
@@ -361,13 +400,13 @@ namespace FinalProject_QuantitativeMethods
                 PrintLoop(Convert.ToInt16(space - rowNames[y]?.GetLength()), " ");
 
                 //for printing the actual number/values of the matrix
-                for(int x = 0 ; x < rowNames.Count + 1; x++)
+                for (int x = 0; x < rowNames.Count + 1; x++)
                 {
                     if (x >= rowNames.Count) break;
                     //int valueLength = (values[y][x]).ToString().Length;
                     int valueLength = (values[y][x]).GetLength();
                     int distance = columnNames[x]!.GetLength();
-                    int spacing = distance % 2 == 0 ? (distance / 2) : ((distance / 2)+1);
+                    int spacing = distance % 2 == 0 ? (distance / 2) : ((distance / 2) + 1);
 
                     Console.Write("|");
                     PrintLoop(spacing - valueLength, " ");
@@ -426,6 +465,7 @@ namespace FinalProject_QuantitativeMethods
                 Console.WriteLine("| ");
             }
         }
+
         #endregion
 
         #region -- Calculation Methods --
@@ -441,13 +481,20 @@ namespace FinalProject_QuantitativeMethods
         #endregion
 
         #region -- Other Methods --
+        /// <summary>
+        /// This method prints in a loop depends on the iteratorLimit
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="iteratorLimit">The limitation of how many loops to execute</param>
+        /// <param name="obj">can be list or any collection</param>
+        /// <param name="optionalStringFormat">optional for string.Format</param>
         static void PrintLoop<T>(int iteratorLimit, T obj, string? optionalStringFormat = null)
         {
             //if ((obj)?.GetType() == typeof(List<T>))
             if (obj is List<string> list)
             {
                 //List<T>? list = (obj as List<T>);
-                if(optionalStringFormat != null)
+                if (optionalStringFormat != null)
                 {
                     for (int i = 0; i < iteratorLimit; i++)
                     {
@@ -462,6 +509,31 @@ namespace FinalProject_QuantitativeMethods
                     }
                 }
             }
+            else if (obj is List<int> numList)
+            {
+                //List<T>? list = (obj as List<T>);
+                if (optionalStringFormat != null)
+                {
+                    for (int i = 0; i < iteratorLimit; i++)
+                    {
+                        Console.Write(optionalStringFormat!, numList[i]);
+                    }
+                }
+                else
+                {
+                    foreach (var item in numList!)
+                    {
+                        Console.WriteLine(item);
+                    }
+                }
+            }
+            else if (obj is IEnumerable<string> enumList)
+            {
+                foreach (var item in enumList)
+                {
+                    Console.Write(item);
+                }
+            }
             else
             {
                 for (int i = 0; i < iteratorLimit; i++)
@@ -471,6 +543,12 @@ namespace FinalProject_QuantitativeMethods
             }
         }
 
+        /// <summary>
+        /// Returns the min value in a list
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="list"></param>
+        /// <returns></returns>
         static int GetMin<T>(IEnumerable<T> list)
         {
             T[] arr = list.ToArray();
@@ -487,16 +565,23 @@ namespace FinalProject_QuantitativeMethods
             return Convert.ToInt16(min);
         }
 
+        /// <summary>
+        /// Returns true if the target value is found inside the 2d array, otherwise false
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="arr2D"></param>
+        /// <param name="target">The value you want to find in the list</param>
+        /// <returns></returns>
         static bool FindVal<T>(T[][] arr2D, int target)
         {
             for (int y = 0; y < arr2D.Length; y++)
             {
-                for (int x = 0;  x < arr2D[y].Length; x++)
+                for (int x = 0; x < arr2D[y].Length; x++)
                 {
                     if (int.TryParse(arr2D[y][x]!.ToString()!, out int result))
                     {
                         if (result == target)
-                        return true;
+                            return true;
                     }
                     else
                     {
@@ -508,7 +593,235 @@ namespace FinalProject_QuantitativeMethods
             return false;
         }
 
-        //static int CheckNumOfLines(T[][])
+
+        static IEnumerable<T> Filter<T>(IEnumerable<T> list, Func<T, bool> func)
+        {
+            if (list is List<T> theList)
+            {
+                for (int i = 0; i < theList.Count; i++)
+                {
+                    if (func(theList[i]))
+                    {
+                        yield return theList[i];
+                    }
+                }
+            }
+            else if (list is T[] theArray)
+            {
+                for (int i = 0; i < theArray.Length; i++)
+                {
+                    if (func(theArray[i]))
+                    {
+                        yield return theArray[i];
+                    }
+                }
+            }
+
+        }
+
+        static IEnumerable<T> Filter2DArr<T>(T[][] arr, Func<T, bool> func)
+        {
+            for (int i = 0; i < arr.Length; i++)
+            {
+                for (int j = 0; j < arr[i].Length; j++)
+                {
+                    if (func(arr[i][j]))
+                    {
+                        yield return arr[i][j];
+                    }
+                }
+            }
+        }
+
+        static Dictionary<string, int> FilterAssignToDict<T>(T[][] arr, Func<T, bool> func)
+        {
+            Dictionary<string, int> FilteredDictionary = new Dictionary<string, int>();
+
+            for (int y = 0; y < arr.Length; y++)
+            {
+                for (int x = 0; x < arr[y].Length; x++)
+                {
+                    if (func(arr[y][x]))
+                    {
+                        string location = string.Format("{0},{1}", y, x);
+                        if ((arr[y][x]!).ToString() == "X") continue;
+                        FilteredDictionary[location] = Convert.ToInt16(arr[y][x]);
+                    }
+                }
+            }
+
+            return FilteredDictionary;
+        }
+
+        static T[][] Initializer<T>(T[][] arr)
+        {
+            T[][] tempArr = new T[arr.Length][];
+            for (int i = 0; i < arr.Length; i++)
+            {
+                tempArr[i] = new T[arr.Length];
+            }
+            return tempArr;
+        }
+
+        static Dictionary<string, int> CheckIntersect<T>(T[][] arr2D, int[][] origArr2D)
+        {
+            T[][] newArr2D = new T[arr2D.Length][];
+            Dictionary<string, int> Values = new Dictionary<string, int>();
+            string[] corners = new string[4];
+
+            // Calculate the dimension of arr2D then assign the corners location
+            for (int i = 0; i < arr2D.Length; i++)
+            {
+                for (int j = 0; j < arr2D[i].Length; j++)
+                {
+                    var currentValue = string.Format("{0},{1}", i, j);
+                    if (currentValue == "0,0")
+                    {
+                        corners[0] = currentValue;
+                        continue;
+                    }
+                    else if (currentValue == string.Format("{0},{1}", 0, arr2D.Length))
+                    {
+                        corners[1] = currentValue;
+                        continue;
+                    }
+                    else if (currentValue == string.Format("{0},{1}", arr2D.Length, 0))
+                    {
+                        corners[2] = currentValue;
+                    }
+                    else if (currentValue == string.Format("{0},{1}", arr2D.Length, arr2D.Length))
+                    {
+                        corners[3] = currentValue;
+                    }
+                }
+            }
+
+            for (int y = 0; y <  newArr2D.Length; y++)
+            {
+                for (int x = 0; x <  arr2D[y].Length; x++)
+                {
+                    var targetValue = arr2D[y][x];
+
+                    var locationValue = string.Format("{0},{1}", y, x);
+                    if ((targetValue!).ToString() != "X") continue; // ensure that the current location contains X
+                    //check if the current location is equal to corners location then check if theres an intersecting line
+                    for (int i = 0; i < corners.Length; i++)
+                    {
+                        if (locationValue == corners[i])
+                        {
+                            switch (i)
+                            {
+                                case 0:
+                                    if ((arr2D[y][x + 1]!).ToString() == "X" &&
+                                        (arr2D[y + 1][x]!).ToString() == "X")
+                                    {
+                                        Values.Add(locationValue, Convert.ToInt16(origArr2D[y][x]));
+                                    }
+                                    break;
+                                case 1:
+                                    if ((arr2D[y][x - 1]!).ToString() == "X" &&
+                                        (arr2D[y + 1][arr2D.Length - 1]!).ToString() == "X")
+                                    {
+                                        Values.Add(locationValue, Convert.ToInt16(origArr2D[y][x]));
+                                    }
+                                    break;
+                                case 2:
+                                    if ((arr2D[arr2D.Length - 2][x]!).ToString() == "X" &&
+                                        (arr2D[y][x+1]!).ToString() == "X")
+                                    {
+                                        Values.Add(locationValue, Convert.ToInt16(origArr2D[y][x]));
+                                    }
+                                    break;
+                                case 3:
+                                    if ((arr2D[arr2D.Length - 2][arr2D.Length - 1]!).ToString() == "X" &&
+                                        (arr2D[y][x - 1]!).ToString() == "X")
+                                    {
+                                        Values.Add(locationValue, Convert.ToInt16(origArr2D[y][x]));
+                                    }
+                                    break;
+                            }
+                        }
+                    }
+                    
+                    //check the side locations
+                    if(x > 0 && x < arr2D.Length - 1 && y == 0)
+                    {
+                        if ((arr2D[y][x - 1]!).ToString() == "X" && (arr2D[y][x + 1]!).ToString() == "X" &&
+                            (arr2D[y + 1][x]!).ToString() == "X")
+                        {
+                            Values.Add(locationValue, Convert.ToInt16(origArr2D[y][x]));
+                        }
+                    }
+                    else if ( y > 0 && y < arr2D.Length - 1 && x == 0)
+                    {
+                        if ((arr2D[y - 1][x]!).ToString() == "X" && (arr2D[y][x + 1]!).ToString() == "X" &&
+                            (arr2D[y + 1][x]!).ToString() == "X")
+                        {
+                            Values.Add(locationValue, Convert.ToInt16(origArr2D[y][x]));
+                        }
+                    }
+                    else if ( y > 0 && y < arr2D.Length - 1 && x == arr2D.Length - 1)
+                    {
+                        if ((arr2D[y - 1][x]!).ToString() == "X" && (arr2D[y][x - 1]!).ToString() == "X" &&
+                            (arr2D[y + 1][x]!).ToString() == "X")
+                        {
+                            Values.Add(locationValue, Convert.ToInt16(origArr2D[y][x]));
+                        }
+                    }
+                    else if ( x > 0 && x < arr2D.Length - 1 && y == arr2D.Length - 1)
+                    {
+                        if ((arr2D[y][x - 1]!).ToString() == "X" && (arr2D[y - 1][x]!).ToString() == "X" &&
+                            (arr2D[y][x + 1]!).ToString() == "X")
+                        {
+                            Values.Add(locationValue, Convert.ToInt16(origArr2D[y][x]));
+                        }
+                    }
+
+                    //Check the inner location if theres an intersecting line
+                    if ( x > 0 && x < arr2D.Length - 1 &&
+                        y > 0 && y < arr2D.Length - 1)
+                    {
+                        if ((arr2D[y - 1][x]!).ToString() == "X" && (arr2D[y + 1][x]!).ToString() == "X" &&
+                            (arr2D[y][x - 1]!).ToString() == "X" && (arr2D[y][x + 1]!).ToString() == "X")
+                        {
+                            Values.Add(locationValue, Convert.ToInt16(origArr2D[y][x]));
+                        }
+                    }
+
+                   
+                }
+            }
+
+            return Values;
+        }
+
+        static bool CountTheCoverLines(string[][] arr, int numberOfLines)
+        {
+            int currentNumberOfLines = 0;
+
+
+            for (int y = 0; y < arr.Length; y++)
+            {
+                var currentArr = arr[y];
+
+                var targetArr = currentArr.Where(n => n == "X").ToList();
+                if (targetArr.Count() > 0) currentNumberOfLines++;
+
+                for (int x = 0; x < arr[y].Length; x++)
+                {
+                    var targetValue = arr[x][y];
+                    int counterX = 0;
+
+                    if (targetValue == "X") counterX++;
+
+                    if (counterX > 0) currentNumberOfLines++;
+                }
+            }
+
+            if (currentNumberOfLines == numberOfLines) return true;
+
+            return false;
+        }
 
         #endregion
     }

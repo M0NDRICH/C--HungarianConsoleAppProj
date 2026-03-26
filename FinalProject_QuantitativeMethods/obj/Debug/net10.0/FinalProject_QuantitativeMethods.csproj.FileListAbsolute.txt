@@ -12,3 +12,4 @@ D:\MyC#Projects\aspnetcore\FinalProject_QuantitativeMethods\FinalProject_Quantit
 D:\MyC#Projects\aspnetcore\FinalProject_QuantitativeMethods\FinalProject_QuantitativeMethods\obj\Debug\net10.0\FinalProject_QuantitativeMethods.pdb
 D:\MyC#Projects\aspnetcore\FinalProject_QuantitativeMethods\FinalProject_QuantitativeMethods\obj\Debug\net10.0\FinalProject_QuantitativeMethods.genruntimeconfig.cache
 D:\MyC#Projects\aspnetcore\FinalProject_QuantitativeMethods\FinalProject_QuantitativeMethods\obj\Debug\net10.0\ref\FinalProject_QuantitativeMethods.dll
+D:\MyC#Projects\aspnetcore\FinalProject_QuantitativeMethods\FinalProject_QuantitativeMethods\obj\Debug\net10.0\FinalProject_QuantitativeMethods.sourcelink.json
