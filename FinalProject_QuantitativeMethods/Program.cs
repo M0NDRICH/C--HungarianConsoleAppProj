@@ -16,11 +16,3 @@ await Hungarian.MethodAsync(names2, jobs, matrix2);
 //var result = Hungarian.SubtractionValuesInRow(matrix, (n) => n - 2);
 
 //int[][] result = Hungarian.Step1(matrix);
-
-//for (int i = 0; i < result[0].Length; i++)
-//{
-//    foreach (var item in result[i])
-//    {
-//        Console.WriteLine(item);
-//    }
-//}

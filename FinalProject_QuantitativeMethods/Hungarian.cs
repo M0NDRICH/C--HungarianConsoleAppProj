@@ -8,27 +8,31 @@ namespace FinalProject_QuantitativeMethods
     {
         static int _row = 0;
         static int _column = 0;
-        static int[][]? array2D;
+        static int[][]? orgMatrix;
+        static int[][]? step1Matrix;
+        static int[][]? step2Matrix;
+        static string[][]? step3Matrix;
         static string[][]? tempArr;
-        static int[][]? step2Arr2D;
-        static int numberOfLinesToCoverZero;
+        //static int numberOfLinesToCoverZero;
 
         public static async Task MethodAsync<T>(List<T> rowNames, List<T> columnNames, int[][] arr)
         {
             _row = rowNames.Count;
             _column = columnNames.Count;
 
-            array2D = new int[_row][]; // holds the actual matrix
-            step2Arr2D = new int[_row][];
+            orgMatrix = new int[_row][]; // holds the actual matrix
+            step2Matrix = new int[_row][];
+            step2Matrix = new int[_row][];
+            step3Matrix = new string[_row][];
             tempArr = new string[_row][]; // holds the matrix with both horizontal and vertical lines
 
             for (int y = 0; y < _row; y++)
             {
-                array2D[y] = new int[_column];
-                step2Arr2D[y] = new int[_column];
+                orgMatrix[y] = new int[_column];
+                step2Matrix[y] = new int[_column];
                 for (int x = 0; x < _column; x++)
                 {
-                    array2D[y][x] = arr[y][x];
+                    orgMatrix[y][x] = arr[y][x];
                     Console.Write(arr[y][x]);
                 }
                 Console.WriteLine(" ");
@@ -37,25 +41,47 @@ namespace FinalProject_QuantitativeMethods
             // Print the current matrix before the first step
             PrintMatrix(rowNames, columnNames, arr);
 
-            array2D = Step1(arr);
+            step1Matrix = Step1(arr);
+            Console.WriteLine("Step 1");
+            PrintMatrix(rowNames, columnNames, step1Matrix);
 
-            PrintMatrix(rowNames, columnNames, array2D);
+            step2Matrix = Step2(step1Matrix);
 
-            array2D = Step2(array2D);
+            Console.WriteLine("Step 2");
+            PrintMatrix(rowNames, columnNames, step2Matrix);
 
-            PrintMatrix(rowNames, columnNames, array2D);
+            step3Matrix = await Step3Async(step2Matrix, rowNames);
 
             Console.WriteLine("Step 3");
-            step2Arr2D = array2D;
-            tempArr = await Step3Async(array2D, rowNames);
+            PrintTempMatrix(rowNames, columnNames, step3Matrix);
 
+            bool isNumberOfLinesEnough = CountTheCoverLines(step3Matrix, arr.Length);
 
-            PrintTempMatrix(rowNames, columnNames, tempArr);
+            if (!isNumberOfLinesEnough)
+            {
+                //initialize
+                StoredResults.stringMatrix = new string[_row][];
+                StoredResults.intMatrix = new int[_row][];
+                StoredResults.stringMatrix.Initialize();
+                StoredResults.intMatrix.Initialize();
 
-            var step4result = await Step4Async(tempArr, step2Arr2D, rowNames);
-            bool isItpass = CountTheCoverLines(step4result, arr.Length);
+                //StoredResults.intMatrix = step2Matrix;
+                Console.WriteLine("Step 4");
+                StoredResults.stringMatrix = await Step4Async(step3Matrix, step2Matrix, rowNames);
+                PrintTempMatrix(columnNames, rowNames, StoredResults.stringMatrix);
 
-            Console.WriteLine(isItpass);
+                isNumberOfLinesEnough = CountTheCoverLines(StoredResults.stringMatrix, arr.Length);
+
+                while (!isNumberOfLinesEnough)
+                {
+                    StoredResults.stringMatrix = await Step4Async(StoredResults.stringMatrix, StoredResults.intMatrix,rowNames);
+                    
+                    isNumberOfLinesEnough = CountTheCoverLines(StoredResults.stringMatrix, arr.Length);
+                    Console.WriteLine("Inside the while loop");
+                    PrintTempMatrix(columnNames, rowNames, StoredResults.stringMatrix);
+                    if (isNumberOfLinesEnough) break;
+                }
+            }
         }
 
         #region -- The Steps --
@@ -127,7 +153,7 @@ namespace FinalProject_QuantitativeMethods
             string[][] tempMatrix = new string[arr.Length][]; // this will hold the copies of the values of matrix
 
             int numberOfLines = rowNames.Count;
-            int currentNumberOfLines = 0;
+            //int currentNumberOfLines = 0;
             int currentValue;
             int numOfValues;
             int zeroCounter = 0;
@@ -170,229 +196,13 @@ namespace FinalProject_QuantitativeMethods
             }
 
             numOfValues = values.Count();
-            //numOfValues > 0
-            int loopIterator = 0;
-            /*
-            while (loopIterator < arr[0].Length)
-            {
-                if (loopIterator == 0)
-                {
-                    //For row
-                    for (int i = 0; i < arr.Length; i++)
-                    {
-                        string targetRow = string.Format("Row {0}", i);
-                        // if zero is equal or more than half size of the dimension then consider to make it cross or cover it
-                        if (values[targetRow] >= (arr.Length % 2 == 0 ? (arr.Length / 2) : (arr.Length / 2) + 1)) 
-                        {
-                            isValueCover[targetRow] = true;
-                            currentNumberOfLines++;
-                            numOfValues--;
+            
+            bool isDone = false;
 
-                            for (int j = 0; j < arr.Length; j++)
-                            {
-                                tempMatrix[i][j] = "X";
-                            }
-                        }
-                        else
-                        {
-                            for (int j = 0; j < arr.Length; j++)
-                            {
-                                tempMatrix[i][j] = (arr[i][j]).ToString();
-                            }
-                        }
-                    }
-                    //For column
-                    for (int i = 0; i < arr.Length; i++)
-                    {
-                        string targetColumn = string.Format("Column {0}", i);
-                        if (values[targetColumn] >= (arr.Length % 2 == 0 ? (arr.Length / 2) : (arr.Length / 2) + 1))
-                        {
-                            isValueCover[targetColumn] = true;
-                            currentNumberOfLines++;
-                            numOfValues--;
-
-                            for (int j = 0; j < arr.Length; j++)
-                            {
-                                if (tempMatrix[j][i] != "X")
-                                {
-                                    tempMatrix[j][i] = "X";
-                                }
-                            }
-                        }
-                        else
-                        {
-                            for (int j = 0; j < arr.Length; j++)
-                            {
-                                if (tempMatrix[j][i] != "X")
-                                {
-                                    tempMatrix[j][i] = (arr[j][i]).ToString();
-                                }
-                            }
-                        }
-                    }
-                }
-                numberOfLinesToCoverZero = currentNumberOfLines;
-                Console.WriteLine("Number of lines " + numberOfLinesToCoverZero);
-                if (currentNumberOfLines == rowNames.Count)
-                    return await Task.FromResult(tempMatrix);
-
-                int nullCounter = 0;
-
-                for (int i = 0; i < tempMatrix.Length; i++)
-                {
-                    if (tempMatrix[i].Contains(null))
-                    {
-                        nullCounter++;
-                    }
-                }
-
-                if (nullCounter == 0)
-                {
-                    bool isAllZeroNotCovered = FindVal(tempMatrix, 0);
-                    if (!isAllZeroNotCovered)
-                    {
-                        for (int i = 0; i < tempMatrix.Length; i++)
-                        {
-                            for (int j = 0; j < tempMatrix[i].Length; j++)
-                            {
-                                Console.Write(tempMatrix[i][j]);
-                            }
-                            Console.WriteLine(" ");
-                        }
-                        numberOfLinesToCoverZero = currentNumberOfLines;
-                        Console.WriteLine("Number of lines " + numberOfLinesToCoverZero);
-
-                        return await Task.FromResult(tempMatrix);
-                    }
-                    else
-                    {
-                        for (int i = 0; i < tempMatrix.Length; i++)
-                        {
-                            for (int j = 0; j < tempMatrix[i].Length; j++)
-                            {
-                                double random = Random.Shared.NextDouble();
-
-                                if (tempMatrix[i][j] == "0")
-                                {
-                                    bool coverRow = Random.Shared.Next(2) == 0; // 50/50 chance
-
-                                    if (coverRow)
-                                    {
-                                        for (int k = 0; k < arr.Length; k++) tempMatrix[i][k] = "X";
-                                    }
-                                    else
-                                    {
-                                        for (int k = 0; k < arr.Length; k++) tempMatrix[k][j] = "X";
-                                    }
-                                    currentNumberOfLines++;
-                                }
-                            }
-                        }
-                    }
-
-                    for (int i = 0; i < tempMatrix.Length; i++)
-                    {
-                        for (int j = 0; j < tempMatrix[i].Length; j++)
-                        {
-                            Console.Write(tempMatrix[i][j]);
-                        }
-                        Console.WriteLine(" ");
-                    }
-                }
-
-                loopIterator++;
-            }
-            */
-            // for drawing the vertical/horizontal lines 
-            bool isDone = false; 
-            /*
+            // The covering process of zeros with horizontal and vertical lines using the "X"
             while (!isDone)
             {
                 for (int y = 0; y < arr.Length; y++)
-                {
-                    var currentRow = string.Format("Row {0}", y);
-                    var zeroInRow = values[currentRow];
-
-                    if (zeroInRow == 0)
-                    {
-                        for (int i = 0; i < arr.Length; i++)
-                        {
-                            tempMatrix[y][i] = (arr[y][i]).ToString();
-                        }
-                        continue;
-                    }
-                    
-                    for (int x = 0; x < arr.Length; x++)
-                    {
-                        if (arr[y][x] != 0)
-                        {
-                            tempMatrix[y][x] = (arr[y][x]).ToString();
-                            //continue;
-                        };
-
-                        var currentColumn = string.Format("Column {0}", x);
-                        var zeroInColumn = values[currentColumn];
-                        if (zeroInColumn <= 1)
-                        {
-                            for (int i = 0; i < arr.Length; i++)
-                            {
-                                if ((arr[i][y]) == 0)
-                                tempMatrix[i][y] = (arr[i][y]).ToString();
-                            }
-                            //continue;
-                        }
-
-                        if (zeroInColumn >= (arr.Length % 2 == 0 ? (arr.Length / 2) : (arr.Length / 2) + 1))
-                        {
-                            for (int i = 0; i < arr.Length; i++)
-                            {
-                                tempMatrix[i][y] = "X";
-                            }
-                            //continue;
-                        }
-                        else if (zeroInRow >= (arr.Length % 2 == 0 ? (arr.Length / 2) : (arr.Length / 2) + 1))
-                        {
-                            for (int i = 0; i < arr.Length; i++)
-                            {
-                                tempMatrix[y][i] = "X";
-                            }
-                            //continue;
-                        }
-                    }
-                }
-
-                if (FindVal(tempMatrix, 0))
-                {
-                    for (int y = 0; y < arr.Length; y++)
-                    {
-                        for (int x = 0; x < arr[y].Length; x++)
-                        {
-                            double random = Random.Shared.NextDouble();
-
-                            if (tempMatrix[y][x] == "0")
-                            {
-                                bool coverRow = Random.Shared.Next(2) == 0; // 50/50 chance
-
-                                if (coverRow)
-                                {
-                                    for (int k = 0; k < arr.Length; k++) tempMatrix[y][x] = "X";
-                                }
-                                else
-                                {
-                                    for (int k = 0; k < arr.Length; k++) tempMatrix[y][x] = "X";
-                                }
-                            }
-                        }
-                    }
-                    break;
-                }
-                isDone = true;
-            }
-            */
-
-            while (!isDone)
-            {
-                for(int y = 0; y < arr.Length; y++)
                 {
                     var keyRow = string.Format("Row {0}", y);
                     var zeroCounterInRow = values[keyRow];
@@ -405,7 +215,7 @@ namespace FinalProject_QuantitativeMethods
                             var location = string.Format("Column {0}", x);
                             int zeroCounterInColumn = values[location];
 
-                            if (arr[y][x] == 0 && zeroCounterInColumn > 1)
+                            if (arr[y][x] == 0 && zeroCounterInColumn >= (arr.Length % 2 == 0 ? (arr.Length / 2) : (arr.Length / 2) + 1))
                             {
                                 for (int i = 0; i < arr[y].Length; i++)
                                 {
@@ -418,10 +228,10 @@ namespace FinalProject_QuantitativeMethods
                             }
                             else
                             {
-                                tempMatrix[y][x] = (arr[y][x]).ToString();
+                                if (tempMatrix[y][x] == null)tempMatrix[y][x] = (arr[y][x]).ToString();
                             }
 
-                            if (zeroCounterInColumn == 0 && x == arr[y].Length-1)
+                            if (zeroCounterInColumn == 0 && x == arr[y].Length - 1)
                             {
                                 thereAreNoZeroInColumn = true;
                                 break;
@@ -432,7 +242,7 @@ namespace FinalProject_QuantitativeMethods
                         {
                             bool isCovered = false;
 
-                            for(int x =  0; x < arr[y].Length; x++)
+                            for (int x = 0; x < arr[y].Length; x++)
                             {
                                 if (tempMatrix[y][x] == "X") isCovered = true;
                             }
@@ -445,13 +255,15 @@ namespace FinalProject_QuantitativeMethods
                                 }
                             }
                         }
-                        else if (zeroCounterInRow >= (arr.Length % 2 == 0 ? (arr.Length / 2) : (arr.Length / 2) + 1) && thereAreNoZeroInColumn)
+                        else if (zeroCounterInRow >= (arr.Length % 2 == 0 ? (arr.Length / 2) : (arr.Length / 2) + 1) && thereAreNoZeroInColumn )
                         {
                             for (int x = 0; x < arr[y].Length; x++)
                             {
                                 tempMatrix[y][x] = "X";
                             }
                         }
+                        
+                        
                     }
                     else
                     {
@@ -479,37 +291,6 @@ namespace FinalProject_QuantitativeMethods
 
                 isDone = true;
             }
-
-            //while (loopIterator < arr[0].Length)
-            //{
-            //    //string[][] rows = new string[arr.Length][];
-            //    //string[][] columns = new string[arr.Length][];
-            //    //int maxLine = rowNames.Count() - 1;
-
-            //    //rows = Initializer(rows);
-            //    //columns = Initializer(columns);
-
-            //    for (int y = 0; y < arr.Length; y++)
-            //    {
-            //        //for (int x = 0; x < arr.Length; x++)
-            //        //{
-
-            //        //}
-
-            //        if (loopIterator == 0)
-            //        {
-            //            //string targetValue = string.Format("Row {0}", y);
-            //            //for (int x = 0; x < arr.Length; x++)
-            //            //{
-            //            //    string otherValue = string.Format("Column {0}", y);
-
-            //            //    if ()
-            //            //}
-            //        }
-            //    }
-
-            //    loopIterator++;
-            //}
 
             return await Task.FromResult(tempMatrix);
         }
@@ -551,7 +332,7 @@ namespace FinalProject_QuantitativeMethods
                 keys = value.ToString().Split(',');
 
                 int targetedValue = intersectedValues[value];
-
+                Console.WriteLine(targetedValue);
                 //add the min value to the corner points or the intersected points
                 step2arr[Convert.ToInt16(keys[0])][Convert.ToInt16(keys[1])] = targetedValue +  minValue;
             }
@@ -567,19 +348,27 @@ namespace FinalProject_QuantitativeMethods
                         {
                             string key = string.Format("{0},{1}", i, j);
                             if (step2arr[i][j] == (resultNewUncoverdValues[k] + minValue) && uncoveredValues.ContainsKey(key))
+                            {
                                 step2arr[i][j] = resultNewUncoverdValues[k];
+                                break;
+                            }
                         }
                     }
                 }
             }
 
 
-
+            Console.WriteLine("Matrix from step2 arr");
             PrintMatrix(rowNames, rowNames, step2arr);
+
+            StoredResults.intMatrix = step2arr;
 
             Arr2D = await Step3Async(step2arr, rowNames);
 
+            Console.WriteLine("Matrix from arr2D");
             PrintTempMatrix(rowNames, rowNames, Arr2D);
+
+            
 
             return Arr2D;
         }
@@ -850,6 +639,13 @@ namespace FinalProject_QuantitativeMethods
             }
         }
 
+        /// <summary>
+        /// This method filters a matrix depends on the condition applied then assign uncovered values to a Dictionary then return it
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="arr"></param>
+        /// <param name="func"></param>
+        /// <returns></returns>
         static Dictionary<string, int> FilterAssignToDict<T>(T[][] arr, Func<T, bool> func)
         {
             Dictionary<string, int> FilteredDictionary = new Dictionary<string, int>();
@@ -880,6 +676,13 @@ namespace FinalProject_QuantitativeMethods
             return tempArr;
         }
 
+        /// <summary>
+        /// This method returns a dictionary of exact location of intersected point as key then the value is the exact value based on the array2D
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="arr2D"></param>
+        /// <param name="origArr2D"></param>
+        /// <returns></returns>
         static Dictionary<string, int> CheckIntersect<T>(T[][] arr2D, int[][] origArr2D)
         {
             T[][] newArr2D = new T[arr2D.Length][];
@@ -897,16 +700,16 @@ namespace FinalProject_QuantitativeMethods
                         corners[0] = currentValue;
                         continue;
                     }
-                    else if (currentValue == string.Format("{0},{1}", 0, arr2D.Length))
+                    else if (currentValue == string.Format("{0},{1}", 0, arr2D.Length - 1))
                     {
                         corners[1] = currentValue;
                         continue;
                     }
-                    else if (currentValue == string.Format("{0},{1}", arr2D.Length, 0))
+                    else if (currentValue == string.Format("{0},{1}", arr2D.Length - 1, 0))
                     {
                         corners[2] = currentValue;
                     }
-                    else if (currentValue == string.Format("{0},{1}", arr2D.Length, arr2D.Length))
+                    else if (currentValue == string.Format("{0},{1}", arr2D.Length - 1, arr2D.Length - 1))
                     {
                         corners[3] = currentValue;
                     }
@@ -929,29 +732,29 @@ namespace FinalProject_QuantitativeMethods
                             switch (i)
                             {
                                 case 0:
-                                    if ((arr2D[y][x + 1]!).ToString() == "X" &&
-                                        (arr2D[y + 1][x]!).ToString() == "X")
+                                    if ((arr2D[y][x + 1]!).ToString() == "X" && (arr2D[y][arr2D.Length - 1]!.ToString() == "X") &&
+                                        (arr2D[y + 1][x]!).ToString() == "X" && (arr2D[arr2D.Length - 1][x]!.ToString() == "X"))
                                     {
                                         Values.Add(locationValue, Convert.ToInt16(origArr2D[y][x]));
                                     }
                                     break;
                                 case 1:
-                                    if ((arr2D[y][x - 1]!).ToString() == "X" &&
-                                        (arr2D[y + 1][arr2D.Length - 1]!).ToString() == "X")
+                                    if ((arr2D[y][x - 1]!).ToString() == "X" && (arr2D[y][0]!.ToString() == "X")&&
+                                        (arr2D[y + 1][arr2D.Length - 1]!).ToString() == "X" && (arr2D[arr2D.Length - 1][arr2D.Length-1])!.ToString() == "X")
                                     {
                                         Values.Add(locationValue, Convert.ToInt16(origArr2D[y][x]));
                                     }
                                     break;
                                 case 2:
-                                    if ((arr2D[arr2D.Length - 2][x]!).ToString() == "X" &&
-                                        (arr2D[y][x+1]!).ToString() == "X")
+                                    if ((arr2D[arr2D.Length - 2][x]!).ToString() == "X" && (arr2D[0][x])!.ToString() == "X" &&
+                                        (arr2D[y][x+1]!).ToString() == "X" && (arr2D[y][arr2D.Length - 1])!.ToString() == "X")
                                     {
                                         Values.Add(locationValue, Convert.ToInt16(origArr2D[y][x]));
                                     }
                                     break;
                                 case 3:
-                                    if ((arr2D[arr2D.Length - 2][arr2D.Length - 1]!).ToString() == "X" &&
-                                        (arr2D[y][x - 1]!).ToString() == "X")
+                                    if ((arr2D[arr2D.Length - 2][arr2D.Length - 1]!).ToString() == "X" && (arr2D[0][arr2D.Length-1])!.ToString() == "X"&&
+                                        (arr2D[y][x - 1]!).ToString() == "X" && (arr2D[y][0])!.ToString() == "X")
                                     {
                                         Values.Add(locationValue, Convert.ToInt16(origArr2D[y][x]));
                                     }
@@ -963,32 +766,32 @@ namespace FinalProject_QuantitativeMethods
                     //check the side locations
                     if(x > 0 && x < arr2D.Length - 1 && y == 0)
                     {
-                        if ((arr2D[y][x - 1]!).ToString() == "X" && (arr2D[y][x + 1]!).ToString() == "X" &&
-                            (arr2D[y + 1][x]!).ToString() == "X")
+                        if ((arr2D[y][0]!).ToString() == "X" && (arr2D[y][arr2D.Length - 1]!).ToString() == "X" &&
+                            (arr2D[arr2D.Length - 1][x]!).ToString() == "X")
                         {
                             Values.Add(locationValue, Convert.ToInt16(origArr2D[y][x]));
                         }
                     }
                     else if ( y > 0 && y < arr2D.Length - 1 && x == 0)
                     {
-                        if ((arr2D[y - 1][x]!).ToString() == "X" && (arr2D[y][x + 1]!).ToString() == "X" &&
-                            (arr2D[y + 1][x]!).ToString() == "X")
+                        if ((arr2D[0][x]!).ToString() == "X" && (arr2D[y][arr2D.Length - 1]!).ToString() == "X" &&
+                            (arr2D[arr2D.Length - 1][x]!).ToString() == "X")
                         {
                             Values.Add(locationValue, Convert.ToInt16(origArr2D[y][x]));
                         }
                     }
                     else if ( y > 0 && y < arr2D.Length - 1 && x == arr2D.Length - 1)
                     {
-                        if ((arr2D[y - 1][x]!).ToString() == "X" && (arr2D[y][x - 1]!).ToString() == "X" &&
-                            (arr2D[y + 1][x]!).ToString() == "X")
+                        if ((arr2D[0][x]!).ToString() == "X" && (arr2D[y][0]!).ToString() == "X" &&
+                            (arr2D[arr2D.Length - 1][x]!).ToString() == "X")
                         {
                             Values.Add(locationValue, Convert.ToInt16(origArr2D[y][x]));
                         }
                     }
                     else if ( x > 0 && x < arr2D.Length - 1 && y == arr2D.Length - 1)
                     {
-                        if ((arr2D[y][x - 1]!).ToString() == "X" && (arr2D[y - 1][x]!).ToString() == "X" &&
-                            (arr2D[y][x + 1]!).ToString() == "X")
+                        if ((arr2D[y][0]!).ToString() == "X" && (arr2D[0][x]!).ToString() == "X" &&
+                            (arr2D[y][arr2D.Length - 1]!).ToString() == "X")
                         {
                             Values.Add(locationValue, Convert.ToInt16(origArr2D[y][x]));
                         }
@@ -998,8 +801,8 @@ namespace FinalProject_QuantitativeMethods
                     if ( x > 0 && x < arr2D.Length - 1 &&
                         y > 0 && y < arr2D.Length - 1)
                     {
-                        if ((arr2D[y - 1][x]!).ToString() == "X" && (arr2D[y + 1][x]!).ToString() == "X" &&
-                            (arr2D[y][x - 1]!).ToString() == "X" && (arr2D[y][x + 1]!).ToString() == "X")
+                        if ((arr2D[0][x]!).ToString() == "X" && (arr2D[arr2D.Length - 1][x]!).ToString() == "X" &&
+                            (arr2D[y][0]!).ToString() == "X" && (arr2D[y][arr2D.Length - 1]!).ToString() == "X")
                         {
                             Values.Add(locationValue, Convert.ToInt16(origArr2D[y][x]));
                         }
@@ -1012,31 +815,71 @@ namespace FinalProject_QuantitativeMethods
             return Values;
         }
 
+        /// <summary>
+        /// This method counts the vertical and horizontal lines inside the 2D array or the matrix
+        /// </summary>
+        /// <param name="arr">The matrix you want to check</param>
+        /// <param name="numberOfLines">The number of horizontal and vertical lines expected to exist in the matrix</param>
+        /// <returns></returns>
         static bool CountTheCoverLines(string[][] arr, int numberOfLines)
         {
             int currentNumberOfLines = 0;
 
-
             for (int y = 0; y < arr.Length; y++)
             {
-                var currentArr = arr[y];
-
-                var targetArr = currentArr.Where(n => n == "X").ToList();
-                if (targetArr.Count() == currentArr.Length) currentNumberOfLines++;
-
+                #region -- check by column --
+                if (y != 0) break;
                 for (int x = 0; x < arr[y].Length; x++)
                 {
-                    var targetValue = arr[x][y];
-                    int counterX = 0;
+                    var currentValue = arr[y][x];
 
-                    if (targetValue == "X") counterX++;
+                    if (currentValue == "X")
+                    {
+                        bool isAllValueCovered = true;
+                        for (int i = 0; i < arr[y].Length; i++)
+                        {
+                            var currentColumnValue = arr[i][x];
+                            if (currentColumnValue != "X")
+                            {
+                                isAllValueCovered = false;
+                                break;
+                            }
+                        }
 
-                    if (counterX == targetValue.Length) currentNumberOfLines++;
+                        if (isAllValueCovered) currentNumberOfLines++;
+                        if (!isAllValueCovered) isAllValueCovered = true;
+                    }
                 }
+                #endregion
+
+                #region -- check by row --
+                for (int x = 0; x < arr[y].Length; x++)
+                {
+                    var currentValue = arr[x][y];
+                    
+                    if (currentValue == "X")
+                    {
+                        bool isAllValueCovered = true;
+                        for (int i = 0; i < arr[y].Length; i++)
+                        {
+                            var currentRowValue = arr[x][i];
+                            if (currentRowValue != "X")
+                            {
+                                isAllValueCovered = false;
+                                break;
+                            }
+                        }
+
+                        if (isAllValueCovered) currentNumberOfLines++;
+                        if (!isAllValueCovered) isAllValueCovered = true;
+                    }
+                }
+                #endregion
             }
 
-            if (currentNumberOfLines == numberOfLines) return true;
 
+            Console.WriteLine("Number of Lines: " + currentNumberOfLines);
+            if (currentNumberOfLines == numberOfLines || currentNumberOfLines == (numberOfLines * 2)) return true;
             return false;
         }
 
@@ -1056,5 +899,9 @@ namespace FinalProject_QuantitativeMethods
         }
     }
 
-
+    public static class StoredResults
+    {
+        public static string[][]? stringMatrix;
+        public static int[][]? intMatrix;
+    }
 }

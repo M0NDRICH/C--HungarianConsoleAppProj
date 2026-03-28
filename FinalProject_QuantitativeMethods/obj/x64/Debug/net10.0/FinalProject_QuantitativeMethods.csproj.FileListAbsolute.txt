@@ -1,0 +1,15 @@
+D:\MyC#Projects\aspnetcore\FinalProject_QuantitativeMethods\FinalProject_QuantitativeMethods\bin\x64\Debug\net10.0\FinalProject_QuantitativeMethods.exe
+D:\MyC#Projects\aspnetcore\FinalProject_QuantitativeMethods\FinalProject_QuantitativeMethods\bin\x64\Debug\net10.0\FinalProject_QuantitativeMethods.deps.json
+D:\MyC#Projects\aspnetcore\FinalProject_QuantitativeMethods\FinalProject_QuantitativeMethods\bin\x64\Debug\net10.0\FinalProject_QuantitativeMethods.runtimeconfig.json
+D:\MyC#Projects\aspnetcore\FinalProject_QuantitativeMethods\FinalProject_QuantitativeMethods\bin\x64\Debug\net10.0\FinalProject_QuantitativeMethods.dll
+D:\MyC#Projects\aspnetcore\FinalProject_QuantitativeMethods\FinalProject_QuantitativeMethods\bin\x64\Debug\net10.0\FinalProject_QuantitativeMethods.pdb
+D:\MyC#Projects\aspnetcore\FinalProject_QuantitativeMethods\FinalProject_QuantitativeMethods\obj\x64\Debug\net10.0\FinalProject_QuantitativeMethods.GeneratedMSBuildEditorConfig.editorconfig
+D:\MyC#Projects\aspnetcore\FinalProject_QuantitativeMethods\FinalProject_QuantitativeMethods\obj\x64\Debug\net10.0\FinalProject_QuantitativeMethods.AssemblyInfoInputs.cache
+D:\MyC#Projects\aspnetcore\FinalProject_QuantitativeMethods\FinalProject_QuantitativeMethods\obj\x64\Debug\net10.0\FinalProject_QuantitativeMethods.AssemblyInfo.cs
+D:\MyC#Projects\aspnetcore\FinalProject_QuantitativeMethods\FinalProject_QuantitativeMethods\obj\x64\Debug\net10.0\FinalProject_QuantitativeMethods.csproj.CoreCompileInputs.cache
+D:\MyC#Projects\aspnetcore\FinalProject_QuantitativeMethods\FinalProject_QuantitativeMethods\obj\x64\Debug\net10.0\FinalProject_QuantitativeMethods.sourcelink.json
+D:\MyC#Projects\aspnetcore\FinalProject_QuantitativeMethods\FinalProject_QuantitativeMethods\obj\x64\Debug\net10.0\FinalProject_QuantitativeMethods.dll
+D:\MyC#Projects\aspnetcore\FinalProject_QuantitativeMethods\FinalProject_QuantitativeMethods\obj\x64\Debug\net10.0\refint\FinalProject_QuantitativeMethods.dll
+D:\MyC#Projects\aspnetcore\FinalProject_QuantitativeMethods\FinalProject_QuantitativeMethods\obj\x64\Debug\net10.0\FinalProject_QuantitativeMethods.pdb
+D:\MyC#Projects\aspnetcore\FinalProject_QuantitativeMethods\FinalProject_QuantitativeMethods\obj\x64\Debug\net10.0\FinalProject_QuantitativeMethods.genruntimeconfig.cache
+D:\MyC#Projects\aspnetcore\FinalProject_QuantitativeMethods\FinalProject_QuantitativeMethods\obj\x64\Debug\net10.0\ref\FinalProject_QuantitativeMethods.dll
