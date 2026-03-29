@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Frozen;
 using System.Collections.Generic;
 using System.Text;
 
@@ -65,7 +66,6 @@ namespace FinalProject_QuantitativeMethods
                 StoredResults.stringMatrix.Initialize();
                 StoredResults.intMatrix.Initialize();
 
-                //StoredResults.intMatrix = step2Matrix;
                 Console.WriteLine("Step 4");
                 StoredResults.stringMatrix = await Step4Async(step3Matrix, step2Matrix, rowNames);
                 PrintTempMatrix(columnNames, rowNames, StoredResults.stringMatrix);
@@ -81,6 +81,11 @@ namespace FinalProject_QuantitativeMethods
                     PrintTempMatrix(columnNames, rowNames, StoredResults.stringMatrix);
                     if (isNumberOfLinesEnough) break;
                 }
+
+                var result = FinalStepAssigningValues(StoredResults.stringMatrix, orgMatrix, StoredResults.intMatrix);
+
+                //PrintTempMatrix(rowNames, columnNames, result);
+                ProjectFinalOutput(result, rowNames, columnNames);
             }
         }
 
@@ -297,29 +302,21 @@ namespace FinalProject_QuantitativeMethods
 
         public static async Task<string[][]> Step4Async<T>(string[][] arr, int[][] step2arr, List<T> rowNames)
         {
-            //List<string> uncoveredValues = new List<string>();
             string[][] Arr2D = new string[arr.Length][];
             Arr2D = Initializer(Arr2D);
             int minValue;
-            //IEnumerable<string> uncoveredValues = Enumerable.Empty<string>(); // This holds the uncovered values
             Dictionary<string, int> uncoveredValues = new Dictionary<string, int>(); // This holds the uncovered values and their coordinates
-            List<int> resultNewUncoverdValues = new List<int>();
+            List<int> resultNewUncoveredValues = new List<int>();
 
             // Filters the arr and gets the uncovered values
             for (int i = 0; i < arr.Length; i++)
             {
-                //uncoveredValues = Filter2DArr(arr, (n) => n != "X");
                 uncoveredValues = FilterAssignToDict(arr, (n) => n != "x");
             }
 
-            //PrintLoop(uncoveredValues.Count(), uncoveredValues);
-
             minValue = GetMin(uncoveredValues.Values);
-            //dynamic uncoveredValuesToSub = uncoveredValues.Select(n => int.Parse(n)).ToArray();
             dynamic uncoveredValuesToSub = uncoveredValues.Values.Select(n => int.Parse(n.ToString())).ToArray();
-            resultNewUncoverdValues = SubtractionWithMinValue((int[])uncoveredValuesToSub, n => n - minValue).ToList();
-            
-            //PrintLoop(resultNewUncoverdValues.Count(), resultNewUncoverdValues);
+            resultNewUncoveredValues = SubtractionWithMinValue((int[])uncoveredValuesToSub, n => n - minValue).ToList();
 
             Dictionary<string, int> intersectedValues = new Dictionary<string, int>();
 
@@ -344,12 +341,12 @@ namespace FinalProject_QuantitativeMethods
                 {
                     if ((step2arr[i][j]).ToString() != "X" ) //&& !intersectedValues.ContainsValue(step2arr[i][j]) )
                     {
-                        for (int k = 0; k < resultNewUncoverdValues.Count(); k++)
+                        for (int k = 0; k < resultNewUncoveredValues.Count(); k++)
                         {
                             string key = string.Format("{0},{1}", i, j);
-                            if (step2arr[i][j] == (resultNewUncoverdValues[k] + minValue) && uncoveredValues.ContainsKey(key))
+                            if (step2arr[i][j] == (resultNewUncoveredValues[k] + minValue) && uncoveredValues.ContainsKey(key))
                             {
-                                step2arr[i][j] = resultNewUncoverdValues[k];
+                                step2arr[i][j] = resultNewUncoveredValues[k];
                                 break;
                             }
                         }
@@ -369,8 +366,140 @@ namespace FinalProject_QuantitativeMethods
             PrintTempMatrix(rowNames, rowNames, Arr2D);
 
             
-
             return Arr2D;
+        }
+
+        public static string[][] FinalStepAssigningValues<T>(T[][] matrix, int[][] intMatrix, int[][] resultMatrixWithZeros)
+        {
+            string[][] resultMatrix = new string[matrix.Length][];
+            resultMatrix = Initializer(resultMatrix);
+            bool[] columns = new bool[matrix.Length];
+            bool[] rows = new bool[matrix.Length];
+            Dictionary<string, int> targetedZeroLocations = new Dictionary<string, int>();
+            Dictionary<string, int> numberOfZeroPerLocation = new Dictionary<string, int>();
+            Dictionary<string, int> exactLocationOfZero = new Dictionary<string, int>();
+
+            for (int i = 0; i < matrix.Length; i++)
+            {
+                columns[i] = false; rows[i] = false;
+            }
+
+            // Assign location with their corresponding number of Zero            
+            // for column
+            for (int y = 0; y < matrix.Length; y++)
+            {
+                string currentLocation = string.Format("Column {0}", y);
+                int zeroInColumn = 0;
+                for (int x = 0; x < matrix[y].Length; x++)
+                {
+                    if (resultMatrixWithZeros[x][y] == 0) zeroInColumn++;
+                }
+                numberOfZeroPerLocation[currentLocation] = zeroInColumn;
+                zeroInColumn = 0;
+            }
+            // for row
+            for (int y = 0; y < matrix.Length; y++)
+            {
+                string currentLocation = string.Format("Row {0}", y);
+                int zeroInRow = 0;
+                for (int x = 0; x < matrix[y].Length; x++)
+                {
+                    if (resultMatrixWithZeros[y][x] == 0)
+                    {
+                        exactLocationOfZero[$"{y},{x}"] = 0;
+                        zeroInRow++; 
+                    }
+
+                }
+                numberOfZeroPerLocation[currentLocation] = zeroInRow;
+                zeroInRow = 0;
+            }
+
+            for (int y = 0; y < resultMatrixWithZeros.Length; y++)
+            {
+                string currentRowLocation = string.Format("Row {0}", y);
+                int numberOfZeroInRow = numberOfZeroPerLocation![currentRowLocation];
+
+                for (int x = 0; x < resultMatrixWithZeros[y].Length; x++)
+                {
+                    var currentValue = resultMatrixWithZeros[y][x];
+                    bool isItOkayToPlaceIt = CheckZerosInEachRow(resultMatrixWithZeros, x, y);
+
+                    if (currentValue != 0) continue; // skip if value is not 0
+                    if (numberOfZeroInRow == 1 && columns[x] == false && rows[y] == false)
+                    {
+                        resultMatrix[y][x] = (orgMatrix![y][x]).ToString();
+                        targetedZeroLocations[$"{y},{x}"] = orgMatrix![y][x];
+                        columns[x] = true;
+                        rows[y] = true;
+                        break;
+                    }
+                    else if (numberOfZeroInRow > 1 && isItOkayToPlaceIt && !columns[x] && !rows[y])
+                    {
+                        resultMatrix[y][x] = (orgMatrix![y][x]).ToString();
+                        targetedZeroLocations[$"{y},{x}"] = orgMatrix![y][x];
+                        columns[x] = true;
+                        rows[y] = true;
+                        break;
+                    }
+                    else if (!isItOkayToPlaceIt)
+                    {
+                        if (y != resultMatrix.Length - 1)
+                        {
+                            for (int i = 0; i < (resultMatrix.Length - x); i++)
+                            {
+                                if (i == 0) continue; // skip by 1
+                                int targetX = x == (resultMatrixWithZeros[y].Length - 1) ? x : (x + i);
+                                var targetVar = resultMatrixWithZeros[y][ targetX];
+                                if (targetVar == 0 && !columns[x] && !rows[targetX])
+                                {
+                                    resultMatrix[y][targetX] = (orgMatrix![y][targetX]).ToString();
+                                    targetedZeroLocations[$"{y},{targetX}"] = orgMatrix![y][targetX];
+                                    columns[targetX] = true;
+                                    rows[y] = true;
+                                    numberOfZeroPerLocation[currentRowLocation] = numberOfZeroInRow - 1;
+                                    break;
+                                }
+                            }
+                        }
+                        else
+                        {
+                            if (!columns[x] && !rows[y] && currentValue == 0)
+                            {
+                                resultMatrix[y][x] = (orgMatrix![y][x]).ToString();
+                            }
+                        }
+                    }
+                    else
+                    {
+                        resultMatrix[y][x] = "X";
+                    }
+
+
+                }
+            }
+
+            // Finalizing and Assign the values in the result matrix
+            for (int y = 0; y < matrix.Length; y++)
+            {
+                for (int x = 0; x < matrix[y].Length; x++)
+                {
+                    string currentValueInResultMatrix = resultMatrix[y][x];
+                    int? currentValue = resultMatrixWithZeros[y][x];
+                    string currentLocation = string.Format("{0},{1}", y, x);
+
+                    if (currentValue != 0 || currentValueInResultMatrix == null)
+                    {
+                        resultMatrix[y][x] = "X";
+                    }
+                    else if (targetedZeroLocations.ContainsKey(currentLocation) && currentValue == 0)
+                    {
+                        resultMatrix[y][x] = (targetedZeroLocations[currentLocation]).ToString();
+                    }
+                }
+            }
+
+            return resultMatrix;
         }
 
         #endregion
@@ -409,7 +538,6 @@ namespace FinalProject_QuantitativeMethods
                 for (int x = 0; x < rowNames.Count + 1; x++)
                 {
                     if (x >= rowNames.Count) break;
-                    //int valueLength = (values[y][x]).ToString().Length;
                     int valueLength = (values[y][x]).GetLength();
                     int distance = columnNames[x]!.GetLength();
                     int spacing = distance % 2 == 0 ? (distance / 2) : ((distance / 2) + 1);
@@ -457,7 +585,6 @@ namespace FinalProject_QuantitativeMethods
                 for (int x = 0; x < rowNames.Count + 1; x++)
                 {
                     if (x >= rowNames.Count) break;
-                    //int valueLength = (values[y][x]).ToString().Length;
                     int valueLength = (values[y][x]).GetLength();
                     int distance = columnNames[x]!.GetLength();
                     int spacing = distance % 2 == 0 ? (distance / 2) : ((distance / 2) + 1);
@@ -474,7 +601,7 @@ namespace FinalProject_QuantitativeMethods
 
         #endregion
 
-        #region -- Calculation Methods --
+        #region -- Calculation Method --
 
         public static IEnumerable<T> SubtractionWithMinValue<T>(T[] List, Func<T?, T?>? func)
         {
@@ -599,7 +726,6 @@ namespace FinalProject_QuantitativeMethods
             return false;
         }
 
-
         static IEnumerable<T> Filter<T>(IEnumerable<T> list, Func<T, bool> func)
         {
             if (list is List<T> theList)
@@ -666,6 +792,13 @@ namespace FinalProject_QuantitativeMethods
             return FilteredDictionary;
         }
 
+        /// <summary>
+        /// Custom method. 
+        /// Initializes a 2D array
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="arr"></param>
+        /// <returns></returns>
         static T[][] Initializer<T>(T[][] arr)
         {
             T[][] tempArr = new T[arr.Length][];
@@ -816,7 +949,8 @@ namespace FinalProject_QuantitativeMethods
         }
 
         /// <summary>
-        /// This method counts the vertical and horizontal lines inside the 2D array or the matrix
+        /// This method counts the vertical and horizontal lines inside the 2D array or the matrix.
+        /// Returns true if the expected number of lines is equal to the actual number of lines, otherwise false
         /// </summary>
         /// <param name="arr">The matrix you want to check</param>
         /// <param name="numberOfLines">The number of horizontal and vertical lines expected to exist in the matrix</param>
@@ -877,10 +1011,85 @@ namespace FinalProject_QuantitativeMethods
                 #endregion
             }
 
-
-            Console.WriteLine("Number of Lines: " + currentNumberOfLines);
             if (currentNumberOfLines == numberOfLines || currentNumberOfLines == (numberOfLines * 2)) return true;
             return false;
+        }
+
+        /// <summary>
+        /// This method checks each row of a matrix if each row contains more than 1 zero it returns true, otherwise false
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="matrix"></param>
+        /// <param name="x"></param>
+        /// <param name="y"></param>
+        /// <returns></returns>
+        static bool CheckZerosInEachRow<T>(T[][] matrix, int x, int y)
+        {
+            bool isAllContainsMoreThan0neZero = true;
+            int zeroCounter = 0;
+
+            for(int i = y; i < matrix.Length; i++)
+            {
+                for (int j = x;  j < matrix[i].Length; j++)
+                {
+                    var currentValue = matrix[j][i];
+
+                    if (Convert.ToInt16(currentValue) == 0)
+                    {
+                        zeroCounter++;
+                    }
+                }
+                if (zeroCounter == 1) return false;
+                zeroCounter = 0;
+            }
+
+            return isAllContainsMoreThan0neZero;
+        }
+
+        static void ProjectFinalOutput<T>(string[][] matrix, List<T> rowNames, List<T> columnNames)
+        {
+            Console.WriteLine("Final Result!");
+
+            PrintTempMatrix(rowNames, columnNames, matrix);
+
+            Console.WriteLine(" ");
+
+            var answer = new StringBuilder();
+            var values = new StringBuilder();
+            int totalValue = 0;
+
+            answer.AppendLine("Assign rowName to columnName (value)");
+
+            for (int y = 0; y < matrix.Length; y++)
+            {
+                answer.Replace("rowName", (rowNames[y]!).ToString());
+                var rowName = (rowNames[y]!).ToString();
+                for (int x = 0; x <  matrix[y].Length; x++)
+                {
+                    if (matrix[y][x] != "X")
+                    {
+                        answer.Replace("value", (matrix[y][x]).ToString());
+                        answer.Replace("columnName",( columnNames[x]!).ToString());
+                        var name = (columnNames[x]!).ToString(); 
+                        if (y == 0)
+                        {
+                            values.Append(matrix[y][x]);
+                        }
+                        else
+                        {
+                            values.Append(" + " + matrix[y][x]);
+                        }
+                        totalValue += Convert.ToInt16(matrix[y][x]);
+                        Console.WriteLine(answer.ToString());
+                        answer.Replace((matrix[y][x]).ToString(), "value");
+                        answer.Replace(name!, "columnName");
+                        break;
+                    }
+                }
+                answer.Replace(rowName!, "rowName");
+            }
+            Console.WriteLine("Z = " + values);
+            Console.WriteLine("Z = " + totalValue);
         }
 
         #endregion
