@@ -82,7 +82,7 @@ namespace FinalProject_QuantitativeMethods
                     if (isNumberOfLinesEnough) break;
                 }
 
-                var result = FinalStepAssigningValues2(StoredResults.stringMatrix, orgMatrix, StoredResults.intMatrix);
+                var result = FinalStepAssigningValues(StoredResults.stringMatrix, orgMatrix, StoredResults.intMatrix);
 
                 PrintSeparator(rowNames, columnNames);
                 ProjectFinalOutput(result, rowNames, columnNames);
@@ -90,7 +90,7 @@ namespace FinalProject_QuantitativeMethods
             else
             {
                 PrintSeparator(rowNames, columnNames);
-                var resultOfStep3 = FinalStepAssigningValues2(step3Matrix, orgMatrix, StoredResults.intMatrix!);
+                var resultOfStep3 = FinalStepAssigningValues(step3Matrix, orgMatrix, StoredResults.intMatrix!);
                 ProjectFinalOutput(resultOfStep3, rowNames, columnNames);
             }
         }
@@ -478,140 +478,7 @@ namespace FinalProject_QuantitativeMethods
             return Arr2D;
         }
 
-        public static string[][] FinalStepAssigningValues<T>(T[][] matrix, int[][] intMatrix, int[][] resultMatrixWithZeros)
-        {
-            string[][] resultMatrix = new string[matrix.Length][];
-            resultMatrix = Initializer(resultMatrix);
-            bool[] columns = new bool[matrix.Length];
-            bool[] rows = new bool[matrix.Length];
-            Dictionary<string, int> targetedZeroLocations = new Dictionary<string, int>();
-            Dictionary<string, int> numberOfZeroPerLocation = new Dictionary<string, int>();
-            Dictionary<string, int> exactLocationOfZero = new Dictionary<string, int>();
-
-            for (int i = 0; i < matrix.Length; i++)
-            {
-                columns[i] = false; rows[i] = false;
-            }
-
-            // Assign location with their corresponding number of Zero            
-            // for column
-            for (int y = 0; y < matrix.Length; y++)
-            {
-                string currentLocation = string.Format("Column {0}", y);
-                int zeroInColumn = 0;
-                for (int x = 0; x < matrix[y].Length; x++)
-                {
-                    if (resultMatrixWithZeros[x][y] == 0) zeroInColumn++;
-                }
-                numberOfZeroPerLocation[currentLocation] = zeroInColumn;
-                zeroInColumn = 0;
-            }
-            // for row
-            for (int y = 0; y < matrix.Length; y++)
-            {
-                string currentLocation = string.Format("Row {0}", y);
-                int zeroInRow = 0;
-                for (int x = 0; x < matrix[y].Length; x++)
-                {
-                    if (resultMatrixWithZeros[y][x] == 0)
-                    {
-                        exactLocationOfZero[$"{y},{x}"] = 0;
-                        zeroInRow++; 
-                    }
-
-                }
-                numberOfZeroPerLocation[currentLocation] = zeroInRow;
-                zeroInRow = 0;
-            }
-
-            for (int y = 0; y < resultMatrixWithZeros.Length; y++)
-            {
-                string currentRowLocation = string.Format("Row {0}", y);
-                int numberOfZeroInRow = numberOfZeroPerLocation![currentRowLocation];
-
-                for (int x = 0; x < resultMatrixWithZeros[y].Length; x++)
-                {
-                    var currentValue = resultMatrixWithZeros[y][x];
-                    bool isItOkayToPlaceIt = CheckZerosInEachRow(resultMatrixWithZeros, x, y);
-
-                    if (currentValue != 0) continue; // skip if value is not 0
-                    if (numberOfZeroInRow == 1 && columns[x] == false && rows[y] == false)
-                    {
-                        resultMatrix[y][x] = (orgMatrix![y][x]).ToString();
-                        targetedZeroLocations[$"{y},{x}"] = orgMatrix![y][x];
-                        columns[x] = true;
-                        rows[y] = true;
-                        break;
-                    }
-                    else if (numberOfZeroInRow > 1 && isItOkayToPlaceIt && !columns[x] && !rows[y])
-                    {
-                        resultMatrix[y][x] = (orgMatrix![y][x]).ToString();
-                        targetedZeroLocations[$"{y},{x}"] = orgMatrix![y][x];
-                        columns[x] = true;
-                        rows[y] = true;
-                        break;
-                    }
-                    else if (!isItOkayToPlaceIt)
-                    {
-                        if (y != resultMatrix.Length - 1)
-                        {
-                            for (int i = 0; i < (resultMatrix.Length - x); i++)
-                            {
-                                if (i == 0) continue; // skip by 1
-                                int targetX = x == (resultMatrixWithZeros[y].Length - 1) ? x : (x + i);
-                                var targetVar = resultMatrixWithZeros[y][ targetX];
-                                if (targetVar == 0 && !columns[x] && !rows[targetX])
-                                {
-                                    resultMatrix[y][targetX] = (orgMatrix![y][targetX]).ToString();
-                                    targetedZeroLocations[$"{y},{targetX}"] = orgMatrix![y][targetX];
-                                    columns[targetX] = true;
-                                    rows[y] = true;
-                                    numberOfZeroPerLocation[currentRowLocation] = numberOfZeroInRow - 1;
-                                    break;
-                                }
-                            }
-                        }
-                        else
-                        {
-                            if (!columns[x] && !rows[y] && currentValue == 0)
-                            {
-                                resultMatrix[y][x] = (orgMatrix![y][x]).ToString();
-                            }
-                        }
-                    }
-                    else
-                    {
-                        resultMatrix[y][x] = "X";
-                    }
-
-
-                }
-            }
-
-            // Finalizing and Assign the values in the result matrix
-            for (int y = 0; y < matrix.Length; y++)
-            {
-                for (int x = 0; x < matrix[y].Length; x++)
-                {
-                    string currentValueInResultMatrix = resultMatrix[y][x];
-                    int? currentValue = resultMatrixWithZeros[y][x];
-                    string currentLocation = string.Format("{0},{1}", y, x);
-
-                    if (currentValue != 0 || currentValueInResultMatrix == null)
-                    {
-                        resultMatrix[y][x] = "X";
-                    }
-                    else if (targetedZeroLocations.ContainsKey(currentLocation) && currentValue == 0)
-                    {
-                        resultMatrix[y][x] = (targetedZeroLocations[currentLocation]).ToString();
-                    }
-                }
-            }
-
-            return resultMatrix;
-        }
-
-        static string[][] FinalStepAssigningValues2<T>(T[][] matrix, int[][] intMatrix, int[][] resultMatrixWithZeros)
+        static string[][] FinalStepAssigningValues<T>(T[][] matrix, int[][] intMatrix, int[][] resultMatrixWithZeros)
         {
             string[][] ResultMatrix = new string[matrix.Length][];
             ResultMatrix = Initializer(ResultMatrix);

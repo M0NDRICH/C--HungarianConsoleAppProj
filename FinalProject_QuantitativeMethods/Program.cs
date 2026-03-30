@@ -20,6 +20,6 @@ List<string> machines = new() { "A", "B", "C", "D", "E" };
 int[][] matrix3 = { new[] { 13, 8, 16, 18, 19 }, new[] { 9, 15, 24, 9, 12 }, new[] { 12, 9, 4, 4, 4 }, new[] { 6, 12, 10, 8, 13 }, new[] { 15, 17, 18, 12, 20 } };
 #endregion
 
-//await Hungarian.Simulate();
+await Hungarian.Simulate();
 //await Hungarian.MethodAsync(names3, machines, matrix3);
-await Hungarian.MethodAsync(names, servers, matrix);
+//await Hungarian.MethodAsync(names, servers, matrix);
