@@ -14,7 +14,6 @@ namespace FinalProject_QuantitativeMethods
         static int[][]? step2Matrix;
         static string[][]? step3Matrix;
         static string[][]? tempArr;
-        //static int numberOfLinesToCoverZero;
 
         public static async Task MethodAsync<T>(List<T> rowNames, List<T> columnNames, int[][] arr)
         {
@@ -34,30 +33,32 @@ namespace FinalProject_QuantitativeMethods
                 for (int x = 0; x < _column; x++)
                 {
                     orgMatrix[y][x] = arr[y][x];
-                    Console.Write(arr[y][x]);
                 }
-                Console.WriteLine(" ");
             }
 
             // Print the current matrix before the first step
+            PrintSeparator(rowNames, columnNames);
+            Console.WriteLine("Actual Values");
             PrintMatrix(rowNames, columnNames, arr);
 
             step1Matrix = Step1(arr);
+            PrintSeparator(rowNames, columnNames);
             Console.WriteLine("Step 1");
             PrintMatrix(rowNames, columnNames, step1Matrix);
 
             step2Matrix = Step2(step1Matrix);
-
+            PrintSeparator(rowNames, columnNames);
             Console.WriteLine("Step 2");
             PrintMatrix(rowNames, columnNames, step2Matrix);
 
             step3Matrix = await Step3Async(step2Matrix, rowNames);
-
+            PrintSeparator(rowNames, columnNames);
             Console.WriteLine("Step 3");
             PrintTempMatrix(rowNames, columnNames, step3Matrix);
 
             bool isNumberOfLinesEnough = CountTheCoverLines(step3Matrix, arr.Length);
 
+            // if number of lines is not enough proceed to step 4
             if (!isNumberOfLinesEnough)
             {
                 //initialize
@@ -66,26 +67,31 @@ namespace FinalProject_QuantitativeMethods
                 StoredResults.stringMatrix.Initialize();
                 StoredResults.intMatrix.Initialize();
 
+                PrintSeparator(rowNames, columnNames);
                 Console.WriteLine("Step 4");
-                StoredResults.stringMatrix = await Step4Async(step3Matrix, step2Matrix, rowNames);
-                PrintTempMatrix(columnNames, rowNames, StoredResults.stringMatrix);
+                StoredResults.stringMatrix = await Step4Async(step3Matrix, step2Matrix, rowNames, columnNames);
 
                 isNumberOfLinesEnough = CountTheCoverLines(StoredResults.stringMatrix, arr.Length);
 
+                // if number of lines is not enough go back again to step 4
                 while (!isNumberOfLinesEnough)
                 {
-                    StoredResults.stringMatrix = await Step4Async(StoredResults.stringMatrix, StoredResults.intMatrix,rowNames);
+                    StoredResults.stringMatrix = await Step4Async(StoredResults.stringMatrix, StoredResults.intMatrix, rowNames, columnNames);
                     
                     isNumberOfLinesEnough = CountTheCoverLines(StoredResults.stringMatrix, arr.Length);
-                    Console.WriteLine("Inside the while loop");
-                    PrintTempMatrix(columnNames, rowNames, StoredResults.stringMatrix);
                     if (isNumberOfLinesEnough) break;
                 }
 
                 var result = FinalStepAssigningValues(StoredResults.stringMatrix, orgMatrix, StoredResults.intMatrix);
 
-                //PrintTempMatrix(rowNames, columnNames, result);
+                PrintSeparator(rowNames, columnNames);
                 ProjectFinalOutput(result, rowNames, columnNames);
+            }
+            else
+            {
+                PrintSeparator(rowNames, columnNames);
+                var resultOfStep3 = FinalStepAssigningValues(step3Matrix, orgMatrix, StoredResults.intMatrix!);
+                ProjectFinalOutput(resultOfStep3, rowNames, columnNames);
             }
         }
 
@@ -296,11 +302,12 @@ namespace FinalProject_QuantitativeMethods
 
                 isDone = true;
             }
+            StoredResults.intMatrix = arr;
 
             return await Task.FromResult(tempMatrix);
         }
 
-        public static async Task<string[][]> Step4Async<T>(string[][] arr, int[][] step2arr, List<T> rowNames)
+        public static async Task<string[][]> Step4Async<T>(string[][] arr, int[][] step2arr, List<T> rowNames, List<T> columnNames)
         {
             string[][] Arr2D = new string[arr.Length][];
             Arr2D = Initializer(Arr2D);
@@ -322,7 +329,7 @@ namespace FinalProject_QuantitativeMethods
 
             intersectedValues = CheckIntersect(arr, step2arr);
 
-            Console.WriteLine("The intercepted values");
+            Console.WriteLine("The intersected values of the matrix");
             foreach (var value in intersectedValues.Keys)
             {
                 string[] keys = new string[2];
@@ -333,7 +340,7 @@ namespace FinalProject_QuantitativeMethods
                 //add the min value to the corner points or the intersected points
                 step2arr[Convert.ToInt16(keys[0])][Convert.ToInt16(keys[1])] = targetedValue +  minValue;
             }
-
+            Console.WriteLine(" ");
             for (int i = 0; i < arr.Length; i++)
             {
                 // need position
@@ -355,17 +362,18 @@ namespace FinalProject_QuantitativeMethods
             }
 
 
-            Console.WriteLine("Matrix from step2 arr");
-            PrintMatrix(rowNames, rowNames, step2arr);
+            Console.WriteLine("Uncovered Matrix");
+            PrintMatrix(rowNames, columnNames, step2arr);
+            Console.WriteLine("");
 
             StoredResults.intMatrix = step2arr;
 
             Arr2D = await Step3Async(step2arr, rowNames);
 
-            Console.WriteLine("Matrix from arr2D");
-            PrintTempMatrix(rowNames, rowNames, Arr2D);
+            Console.WriteLine("Covered Matrix");
+            PrintTempMatrix(rowNames, columnNames, Arr2D);
+            Console.WriteLine("");
 
-            
             return Arr2D;
         }
 
@@ -1046,6 +1054,13 @@ namespace FinalProject_QuantitativeMethods
             return isAllContainsMoreThan0neZero;
         }
 
+        /// <summary>
+        /// This method projects or display the final output of the hungarian method
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="matrix"></param>
+        /// <param name="rowNames"></param>
+        /// <param name="columnNames"></param>
         static void ProjectFinalOutput<T>(string[][] matrix, List<T> rowNames, List<T> columnNames)
         {
             Console.WriteLine("Final Result!");
@@ -1090,6 +1105,101 @@ namespace FinalProject_QuantitativeMethods
             }
             Console.WriteLine("Z = " + values);
             Console.WriteLine("Z = " + totalValue);
+        }
+
+        /// <summary>
+        /// Prints a separator
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="rowNames"></param>
+        /// <param name="columnNames"></param>
+        static void PrintSeparator<T>(List<T> rowNames, List<T> columnNames)
+        {
+            int rowSpace = 0;
+            for (int i = 0; i < rowNames.Count; i++)
+            {
+                if (i == 0)
+                {
+                    rowSpace = (rowNames[i]!).GetLength();
+                    continue;
+                }
+                if (rowSpace < rowNames[i]!.GetLength()) rowSpace = rowNames[i]!.GetLength();
+            }
+
+            int columnSpace = 0;
+            for (int i = 0; i < columnNames.Count; i++)
+            {
+                columnSpace += columnNames[i]!.GetLength() + 2;
+            }
+
+            int loopLimit = rowSpace  + columnSpace + 2;
+
+            for (int i = 0; i < loopLimit; i++) Console.Write("-");
+
+            Console.WriteLine("");
+        }
+
+        /// <summary>
+        /// Displays the title of the project
+        /// </summary>
+        /// <returns></returns>
+        public static async Task DisplayTitle()
+        {
+            string title = await File.ReadAllTextAsync("ProjectTitle.txt");
+
+            Console.WriteLine(title);
+            Console.WriteLine("Press any key to continue....");
+            Console.ReadKey();
+            Console.Clear();
+        }
+
+        public static async Task Simulate()
+        {
+            String[] rowNames;
+            String[] columnNames;
+            int[][] theMatrix;
+            int Dimension;
+
+            Console.WriteLine("What is the Dimension of the 2D array or the matrix? (e.g., 4, 3)");
+            Dimension = int.Parse(Console.ReadLine()!);
+
+            rowNames = new String[Dimension];
+            columnNames = new String[Dimension];
+            theMatrix = new int[Dimension][];
+            theMatrix = Initializer(theMatrix);
+
+            Console.WriteLine("Time to assign column names.");
+            for(int i = 0; i < Dimension; i++)
+            {
+                Console.Write("What is the name of column {0}?", i + 1);
+                columnNames[i] = Console.ReadLine()!;
+            }
+
+            Console.WriteLine("");
+
+            Console.WriteLine("Time to assign row names.");
+            for (int i = 0; i < Dimension; i++)
+            {
+                Console.Write("What is the name of row {0}?", i + 1);
+                rowNames[i] = Console.ReadLine()!;
+            }
+
+            Console.WriteLine("Time to assign the values in the 2D array or matrix.");
+            for (int y = 0; y < Dimension; y++)
+            {
+                for (int x = 0; x < Dimension; x++)
+                {
+                    Console.Write("What value should be in coordinates[{0}][{1}] or in row[{0}] and column[{1}] ?", y, x);
+                    int value = int.Parse((Console.ReadLine()!).Trim());
+                    theMatrix[y][x] = value;
+                }
+            }
+
+            Console.WriteLine("\nNow Calculating... \n");
+            await Task.Delay(1000);
+            
+
+            await MethodAsync((rowNames).ToList(), (columnNames).ToList(), theMatrix);
         }
 
         #endregion
