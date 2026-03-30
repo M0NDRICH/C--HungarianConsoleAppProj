@@ -82,7 +82,7 @@ namespace FinalProject_QuantitativeMethods
                     if (isNumberOfLinesEnough) break;
                 }
 
-                var result = FinalStepAssigningValues(StoredResults.stringMatrix, orgMatrix, StoredResults.intMatrix);
+                var result = FinalStepAssigningValues2(StoredResults.stringMatrix, orgMatrix, StoredResults.intMatrix);
 
                 PrintSeparator(rowNames, columnNames);
                 ProjectFinalOutput(result, rowNames, columnNames);
@@ -90,7 +90,7 @@ namespace FinalProject_QuantitativeMethods
             else
             {
                 PrintSeparator(rowNames, columnNames);
-                var resultOfStep3 = FinalStepAssigningValues(step3Matrix, orgMatrix, StoredResults.intMatrix!);
+                var resultOfStep3 = FinalStepAssigningValues2(step3Matrix, orgMatrix, StoredResults.intMatrix!);
                 ProjectFinalOutput(resultOfStep3, rowNames, columnNames);
             }
         }
@@ -211,79 +211,180 @@ namespace FinalProject_QuantitativeMethods
             bool isDone = false;
 
             // The covering process of zeros with horizontal and vertical lines using the "X"
+            //while (!isDone)
+            //{
+            //    for (int y = 0; y < arr.Length; y++)
+            //    {
+            //        var keyRow = string.Format("Row {0}", y);
+            //        var zeroCounterInRow = values[keyRow];
+            //        if (zeroCounterInRow != 0)
+            //        {
+            //            bool thereAreNoZeroInColumn = false;
+                        
+            //            for (int x = 0; x < arr[y].Length; x++)
+            //            {
+            //                var location = string.Format("Column {0}", x);
+            //                int zeroCounterInColumn = values[location];
+
+            //                if (arr[y][x] == 0 && zeroCounterInColumn >= (arr.Length % 2 == 0 ? (arr.Length / 2) : (arr.Length / 2) + 1) || zeroCounterInColumn >= (arr.Length % 2 == 0 ? (arr.Length / 2) : (arr.Length / 2) + 1))
+            //                {
+            //                    for (int i = 0; i < arr[y].Length; i++)
+            //                    {
+            //                        tempMatrix[i][x] = "X";
+            //                    }
+            //                }
+            //                else if (arr[y][x] == 0 && zeroCounterInColumn == 1)
+            //                {
+            //                    tempMatrix[y][x] = (arr[y][x]).ToString();
+            //                }
+            //                else
+            //                {
+            //                    if (tempMatrix[y][x] == null)tempMatrix[y][x] = (arr[y][x]).ToString();
+            //                }
+
+            //                if (zeroCounterInColumn == 0 && x == arr[y].Length - 1)
+            //                {
+            //                    thereAreNoZeroInColumn = true;
+            //                    break;
+            //                }
+            //            }
+
+            //            if (zeroCounterInRow >= (arr.Length % 2 == 0 ? (arr.Length / 2) : (arr.Length / 2) + 1))
+            //            {
+            //                bool isCovered = false;
+
+            //                for (int x = 0; x < arr[y].Length; x++)
+            //                {
+            //                    if (tempMatrix[y][x] == "X") isCovered = true;
+            //                }
+
+            //                if (!isCovered)
+            //                {
+            //                    for (int x = 0; x < arr[y].Length; x++)
+            //                    {
+            //                        tempMatrix[y][x] = "X";
+            //                    }
+            //                }
+            //            }
+            //            else if (zeroCounterInRow >= (arr.Length % 2 == 0 ? (arr.Length / 2) : (arr.Length / 2) + 1) && thereAreNoZeroInColumn )
+            //            {
+            //                for (int x = 0; x < arr[y].Length; x++)
+            //                {
+            //                    tempMatrix[y][x] = "X";
+            //                }
+            //            }
+                        
+                        
+            //        }
+            //        else
+            //        {
+            //            for (int x = 0; x < arr[y].Length; x++)
+            //            {
+            //                tempMatrix[y][x] = (arr[y][x]).ToString();
+            //            }
+            //        }
+
+            //    }
+
+            //    if (FindVal(tempMatrix, 0))
+            //    {
+            //        for (int y = 0; y < arr.Length; y++)
+            //        {
+            //            for (int x = 0; x < arr[y].Length; x++)
+            //            {
+            //                if (tempMatrix[y][x] == "0")
+            //                {
+            //                    for (int x2 = 0; x2 < arr[y].Length; x2++) tempMatrix[y][x2] = "X";
+            //                }
+            //            }
+            //        }
+            //    }
+
+            //    isDone = true;
+            //}
+
             while (!isDone)
             {
+                //Covering by column
+                for (int y = 0; y <arr.Length; y++)
+                {
+                    string currentColumn = string.Format("Column {0}", y);
+                    int numberOfZeroInColumn = values[currentColumn];
+
+                    if (numberOfZeroInColumn >= (arr.Length % 2 == 0 ? arr.Length / 2 : (arr.Length / 2) + 1))
+                    {
+                        for (int x = 0; x < arr.Length; x++)
+                        {
+                            string currentRow = string.Format("Row {0}", x);
+                            int numberOfZeroInRow = values[currentRow];
+                            if (arr[x][y] == 0)
+                            {
+                                values[string.Format("Row {0}", x)] = values[string.Format("Row {0}", x)] - 1;
+                                //values[currentColumn] = numberOfZeroInColumn - 1;
+                            }
+
+                            tempMatrix[x][y] = "X";
+                        }
+                    }
+                }
+
+                //Covering by row
+                for (int x = 0; x < arr.Length; x++)
+                {
+                    string currentRow = string.Format("Row {0}", x);
+                    string currentColumn = string.Format("Column {0}", x);
+                    int numberOfZeroInRow = values[currentRow];
+                    int numberOfZeroInColumn = values[currentColumn];
+
+                    if (numberOfZeroInRow >= (arr.Length % 2 == 0 ? arr.Length / 2 : (arr.Length / 2) + 1))
+                    {
+                        for (int y = 0; y < arr.Length; y++)
+                        {
+                            tempMatrix[x][y] = "X";
+                            if (arr[x][y] == 0)
+                            {
+                                //values[currentRow] = numberOfZeroInRow - 1;
+                                values[string.Format("Column {0}", y)] = values[string.Format("Column {0}", y)] - 1;
+                            }
+                        }
+                    }
+                }
+
+                //Assign org values to tempMatrix
                 for (int y = 0; y < arr.Length; y++)
                 {
-                    var keyRow = string.Format("Row {0}", y);
-                    var zeroCounterInRow = values[keyRow];
-                    if (zeroCounterInRow != 0)
+                    for (int x = 0; x < arr.Length; x++)
                     {
-                        bool thereAreNoZeroInColumn = false;
-                        
-                        for (int x = 0; x < arr[y].Length; x++)
-                        {
-                            var location = string.Format("Column {0}", x);
-                            int zeroCounterInColumn = values[location];
-
-                            if (arr[y][x] == 0 && zeroCounterInColumn >= (arr.Length % 2 == 0 ? (arr.Length / 2) : (arr.Length / 2) + 1))
-                            {
-                                for (int i = 0; i < arr[y].Length; i++)
-                                {
-                                    tempMatrix[i][x] = "X";
-                                }
-                            }
-                            else if (arr[y][x] == 0 && zeroCounterInColumn == 1)
-                            {
-                                tempMatrix[y][x] = (arr[y][x]).ToString();
-                            }
-                            else
-                            {
-                                if (tempMatrix[y][x] == null)tempMatrix[y][x] = (arr[y][x]).ToString();
-                            }
-
-                            if (zeroCounterInColumn == 0 && x == arr[y].Length - 1)
-                            {
-                                thereAreNoZeroInColumn = true;
-                                break;
-                            }
-                        }
-
-                        if (zeroCounterInRow >= (arr.Length % 2 == 0 ? (arr.Length / 2) : (arr.Length / 2) + 1))
-                        {
-                            bool isCovered = false;
-
-                            for (int x = 0; x < arr[y].Length; x++)
-                            {
-                                if (tempMatrix[y][x] == "X") isCovered = true;
-                            }
-
-                            if (!isCovered)
-                            {
-                                for (int x = 0; x < arr[y].Length; x++)
-                                {
-                                    tempMatrix[y][x] = "X";
-                                }
-                            }
-                        }
-                        else if (zeroCounterInRow >= (arr.Length % 2 == 0 ? (arr.Length / 2) : (arr.Length / 2) + 1) && thereAreNoZeroInColumn )
-                        {
-                            for (int x = 0; x < arr[y].Length; x++)
-                            {
-                                tempMatrix[y][x] = "X";
-                            }
-                        }
-                        
-                        
+                        if (tempMatrix[y][x] == null) tempMatrix[y][x] = (arr[y][x]).ToString();
                     }
-                    else
+                }
+
+                // check if theres still zeros remaining in the matrix
+                for (int y = 0; y < arr.Length; y++)
+                {
+                    string currentColumn = string.Format("Column {0}", y);
+                    int valueInColumn = values[currentColumn];
+
+                    if (valueInColumn > 1)
                     {
-                        for (int x = 0; x < arr[y].Length; x++)
+                        for (int x = 0; x < arr.Length; x++)
                         {
-                            tempMatrix[y][x] = (arr[y][x]).ToString();
+                            tempMatrix[x][y] = "X";
                         }
                     }
+                }
+                for (int y = 0; y < arr.Length; y++)
+                {
+                    string currentRow = string.Format("Row {0}", y);
+                    int valueInRow = values[currentRow];
 
+                    if (valueInRow > 1)
+                    {
+                        for (int x = 0; x < arr.Length; x++)
+                        {
+                            tempMatrix[y][x] = "X";
+                        }
+                    }
                 }
 
                 if (FindVal(tempMatrix, 0))
@@ -299,9 +400,9 @@ namespace FinalProject_QuantitativeMethods
                         }
                     }
                 }
-
                 isDone = true;
             }
+
             StoredResults.intMatrix = arr;
 
             return await Task.FromResult(tempMatrix);
@@ -508,6 +609,95 @@ namespace FinalProject_QuantitativeMethods
             }
 
             return resultMatrix;
+        }
+
+        static string[][] FinalStepAssigningValues2<T>(T[][] matrix, int[][] intMatrix, int[][] resultMatrixWithZeros)
+        {
+            string[][] ResultMatrix = new string[matrix.Length][];
+            ResultMatrix = Initializer(ResultMatrix);
+
+            Dictionary<string, int> RowsAndTotalZero = new Dictionary<string, int>(); // Rows and their corresponding total number of zero
+            Dictionary<string, int> ColumnsAndTotalZero = new Dictionary<string, int>(); // Columns and their corresponding total number of zero
+            Dictionary<string, int> TargetedZero = new Dictionary<string, int>(); // This holds the assigned zero and its coordinates
+
+            for (int y = 0; y < matrix.Length; y++)
+            {
+                string currentRow = string.Format("Row {0}", y);
+                string currentColumn = string.Format("Column {0}", y);
+                int zeroCounterRow = 0;
+                int zeroCounterColumn = 0;
+                for (int x = 0; x < matrix[y].Length; x++)
+                {
+                    if (resultMatrixWithZeros[y][x] == 0) zeroCounterRow++;
+                    if (resultMatrixWithZeros[x][y] == 0) zeroCounterColumn++;
+                }
+                RowsAndTotalZero[currentRow] = zeroCounterRow;
+                ColumnsAndTotalZero[currentColumn] = zeroCounterColumn;
+            }
+
+            for (int y = 0; y < matrix.Length; y++)
+            {
+                var currentValue = RowsAndTotalZero[string.Format("Row {0}", y)];
+                
+                if (currentValue == 1)
+                {
+                    for (int x = 0; x < matrix.Length; x++)
+                    {
+                        if (resultMatrixWithZeros[y][x] == 0) TargetedZero[string.Format("{0},{1}", y, x)] = intMatrix[y][x];
+                    }
+                }
+                else if (currentValue > 1)
+                {
+                    bool isItOkToPlace = false;
+                    for (int x = 0; x < matrix.Length; x++)
+                    {
+                        if (resultMatrixWithZeros[y][x] == 0 && ColumnsAndTotalZero[string.Format("Column {0}", x)] == 1)
+                        {
+                            TargetedZero[string.Format("{0},{1}", y, x)] = intMatrix[y][x];
+                            break;
+                        }
+                        else if (resultMatrixWithZeros[y][x] == 0)
+                        {
+                            // loop then check each zero
+                            for (int i = (y == matrix.Length - 1 ? y : y + 1); i < matrix.Length; i++)
+                            {
+                                if (resultMatrixWithZeros[i][x] == 0 && RowsAndTotalZero[string.Format("Row {0}", i)] > 1)
+                                {
+                                    //RowsAndTotalZero[string.Format("Row {0}", i)] = (RowsAndTotalZero[string.Format("Row {0}", i)] - 1);
+                                    isItOkToPlace = true;
+                                    break;
+                                }
+                            }
+
+                            if (isItOkToPlace)
+                            {
+                                TargetedZero[string.Format("{0},{1}", y, x)] = intMatrix[y][x];
+                                break;
+                            }
+                        }
+                    }
+                }
+            }
+
+            // Assignning the zeros with original value from the original matrix
+            for (int y = 0; y < matrix.Length; y++)
+            {
+                for (int x = 0; x < matrix.Length; x++)
+                {
+                    var target = string.Format("{0},{1}", y, x);
+                    if (TargetedZero.ContainsKey(target))
+                    {
+                        ResultMatrix[y][x] = (TargetedZero[target]).ToString();
+                    }
+                    else
+                    {
+                        ResultMatrix[y][x] = "X";
+                    }
+                }
+            }
+
+
+            return ResultMatrix;
         }
 
         #endregion
