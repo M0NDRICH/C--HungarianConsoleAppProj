@@ -18,8 +18,14 @@ int[][] matrix2 = { new[] { 4, 2, 5, 7 }, new[] { 8, 3, 10, 8 }, new[] { 12, 5, 
 List<string> names3 = new() { "1", "2", "3", "4", "5" };
 List<string> machines = new() { "A", "B", "C", "D", "E" };
 int[][] matrix3 = { new[] { 13, 8, 16, 18, 19 }, new[] { 9, 15, 24, 9, 12 }, new[] { 12, 9, 4, 4, 4 }, new[] { 6, 12, 10, 8, 13 }, new[] { 15, 17, 18, 12, 20 } };
+
+//List<string> jobs = new() { "Job1", "Job2", "Job3", "Job4" };
+List<string> printers = new() { "Printer1", "Printer2", "Printer3", "Printer4" };
+int[][] matrix4 = { new[] { 6, 5, 17, 7 }, new[] { 12, 8, 4, 3 }, new[] { 7, 6, 9, 10 }, new[] { 6, 3, 7, 8 } };
+
 #endregion
 
 await Hungarian.Simulate();
 //await Hungarian.MethodAsync(names3, machines, matrix3);
 //await Hungarian.MethodAsync(names, servers, matrix);
+//await Hungarian.MethodAsync(printers, jobs, matrix4);

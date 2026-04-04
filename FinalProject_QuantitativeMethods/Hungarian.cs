@@ -478,6 +478,8 @@ namespace FinalProject_QuantitativeMethods
             return Arr2D;
         }
 
+        #region -- Temp Assigningvalues --
+        /*
         static string[][] FinalStepAssigningValues<T>(T[][] matrix, int[][] intMatrix, int[][] resultMatrixWithZeros)
         {
             string[][] ResultMatrix = new string[matrix.Length][];
@@ -502,6 +504,25 @@ namespace FinalProject_QuantitativeMethods
                 ColumnsAndTotalZero[currentColumn] = zeroCounterColumn;
             }
 
+            if (RowsAndTotalZero.ContainsValue(1))
+            {
+                for (int y = 0; y < matrix.Length; y++)
+                {
+                    if (RowsAndTotalZero[string.Format("Row {0}", y)] == 1)
+                    {
+                        for (int x = 0; x < matrix[y].Length; x++)
+                        {
+                            if (resultMatrixWithZeros[y][x] == 0)
+                            {
+                                TargetedZero[string.Format("{0},{1}", y, x)] = intMatrix[y][x];
+                                ColumnsAndTotalZero[string.Format("Column {0}", x)] = 1;
+                                //RowsAndTotalZero[string.Format("Row {0}", y)] -= ;
+                            }
+                        }
+                    }
+                }
+            }
+
             for (int y = 0; y < matrix.Length; y++)
             {
                 var currentValue = RowsAndTotalZero[string.Format("Row {0}", y)];
@@ -510,7 +531,11 @@ namespace FinalProject_QuantitativeMethods
                 {
                     for (int x = 0; x < matrix.Length; x++)
                     {
-                        if (resultMatrixWithZeros[y][x] == 0) TargetedZero[string.Format("{0},{1}", y, x)] = intMatrix[y][x];
+                        if (resultMatrixWithZeros[y][x] == 0)
+                        {
+                            TargetedZero[string.Format("{0},{1}", y, x)] = intMatrix[y][x];
+                            ColumnsAndTotalZero[string.Format("Column {0}", x)] = 1;
+                        };
                     }
                 }
                 else if (currentValue > 1)
@@ -526,18 +551,39 @@ namespace FinalProject_QuantitativeMethods
                         else if (resultMatrixWithZeros[y][x] == 0)
                         {
                             // loop then check each zero
+                            int targetRow = 0;
+                            bool thereAreNoZeroInThisColumn = false;
                             for (int i = (y == matrix.Length - 1 ? y : y + 1); i < matrix.Length; i++)
                             {
+                                int numberOfZeroInRow = RowsAndTotalZero[string.Format("Row {0}", i)];
                                 if (resultMatrixWithZeros[i][x] == 0 && RowsAndTotalZero[string.Format("Row {0}", i)] > 1)
                                 {
-                                    //RowsAndTotalZero[string.Format("Row {0}", i)] = (RowsAndTotalZero[string.Format("Row {0}", i)] - 1);
-                                    isItOkToPlace = true;
-                                    break;
+                                    for (int j = 0; j < matrix.Length; j++)
+                                    {
+                                        if (resultMatrixWithZeros[i][j] == 0 && ColumnsAndTotalZero[string.Format("Column {0}", j)] != 1)
+                                        {
+                                            targetRow = i;
+                                            isItOkToPlace = true;
+                                        }
+                                        if (resultMatrixWithZeros[i][j] == 0) --numberOfZeroInRow;
+                                        if (numberOfZeroInRow == 1) break;
+                                    }
                                 }
+                                //else { thereAreNoZeroInThisColumn = true; }
                             }
 
                             if (isItOkToPlace)
                             {
+                                RowsAndTotalZero[string.Format("Row {0}", targetRow)] -= 1;
+                                ColumnsAndTotalZero[string.Format("Column {0}", x)] = 1;
+                                TargetedZero[string.Format("{0},{1}", y, x)] = intMatrix[y][x];
+                                break;
+                            }
+
+                            if (thereAreNoZeroInThisColumn)
+                            {
+                                RowsAndTotalZero[string.Format("Row {0}", targetRow)] -= 1;
+                                ColumnsAndTotalZero[string.Format("Column {0}", x)] = 1;
                                 TargetedZero[string.Format("{0},{1}", y, x)] = intMatrix[y][x];
                                 break;
                             }
@@ -567,6 +613,278 @@ namespace FinalProject_QuantitativeMethods
             return ResultMatrix;
         }
 
+        static string[][] Fin<T>(T[][] matrix, int[][] intMatrix, int[][] resultMatrixWithZeros)
+        {
+            string[][] ResultMatrix = new string[resultMatrixWithZeros.Length][];
+            ResultMatrix = Initializer(ResultMatrix);
+
+            Dictionary<string, int> LocationAndZeroValue = new Dictionary<string, int>();
+            Dictionary<string, bool> IsOccupied = new Dictionary<string, bool>();
+
+            int zeroCounterRow = 0;
+            int zeroCounterColumn = 0;
+
+            for (int y = 0; y < resultMatrixWithZeros.Length; y++)
+            {
+                for (int x = 0; x < resultMatrixWithZeros.Length; x++)
+                {
+                    if (resultMatrixWithZeros[y][x] == 0) zeroCounterRow++;
+                    if (resultMatrixWithZeros[x][y] == 0) zeroCounterColumn++; 
+                }
+                LocationAndZeroValue[string.Format("Row {0}", y)] = zeroCounterRow;
+                LocationAndZeroValue[string.Format("Column {0}", y)] = zeroCounterColumn;
+                IsOccupied[string.Format("Column {0}", y)] = false;
+                IsOccupied[string.Format("Row {0}", y)] = false;
+                zeroCounterRow = 0;
+                zeroCounterColumn = 0;
+            }
+
+            if (LocationAndZeroValue.ContainsValue(1))
+            {
+                int locationContains1Zero = LocationAndZeroValue.Where(obj => obj.Value == 1).Select(obj => obj).ToList().Count();
+
+                while (locationContains1Zero > 0)
+                {
+                    for (int y = 0; y < matrix.Length; y++)
+                    {
+                        var currentRow = string.Format("Row {0}", y);
+                        if (LocationAndZeroValue[currentRow] != 1) continue;
+                        for (int x = 0; x < matrix[y].Length; x++)
+                        {
+                            if (resultMatrixWithZeros[y][x] == 0)
+                            {
+                                ResultMatrix[y][x] = (intMatrix[y][x]).ToString();
+                                IsOccupied[string.Format("Column {0}", x)] = true;
+                                IsOccupied[string.Format("Row {0}", y)] = true;
+                                LocationAndZeroValue = DeductAll(LocationAndZeroValue, string.Format("{0},{1}", y, x), resultMatrixWithZeros);
+                                locationContains1Zero--;
+                            }
+                        }
+                    }
+                }
+            }
+
+            for (int y = 0; y < matrix.Length; y++)
+            {
+                var currentRowValue = LocationAndZeroValue[string.Format("Row {0}", y)];
+                if (currentRowValue > 1)
+                {
+                    int totalZero = currentRowValue;
+                    for (int x = 0; x < matrix.Length; x++)
+                    {
+                        if (resultMatrixWithZeros[y][x] == 0)
+                        {
+                            bool isOkayToPlace = false;
+                            for (int i = (y == matrix.Length - 1 ? y : y + 1); i < matrix[y].Length; i++)
+                            {
+                                if (IsOccupied[string.Format("Row {0}", i)] == true) break;
+                                if (LocationAndZeroValue[string.Format("Row {0}", i)] > 1)
+                                {
+                                    isOkayToPlace = true;
+                                }
+                                else if (LocationAndZeroValue[string.Format("Row {0}", i)] == 1)
+                                {
+                                    isOkayToPlace = false;
+                                    break;
+                                }
+
+                            }
+
+                            if (isOkayToPlace && !IsOccupied[string.Format("Column {0}", x)] && !IsOccupied[string.Format("Row {0}", y)])
+                            {
+                                ResultMatrix[y][x] = (intMatrix[y][x]).ToString();
+                                IsOccupied[string.Format("Column {0}", x)] = true;
+                                IsOccupied[string.Format("Row {0}", y)] = true;
+                                LocationAndZeroValue = DeductAll(LocationAndZeroValue, string.Format("{0},{1}", y, x), resultMatrixWithZeros);
+                                break;
+                            }
+                            else if (totalZero == 1 && !IsOccupied[string.Format("Column {0}", x)] && !IsOccupied[string.Format("Row {0}", y)])
+                            {
+                                ResultMatrix[y][x] = (intMatrix[y][x]).ToString();
+                                IsOccupied[string.Format("Column {0}", x)] = true;
+                                IsOccupied[string.Format("Row {0}", y)] = true;
+                                LocationAndZeroValue = DeductAll(LocationAndZeroValue, string.Format("{0},{1}", y, x), resultMatrixWithZeros);
+                                break;
+                            }
+                        }
+                        totalZero--;
+                    }
+                }
+                else if (currentRowValue == 1)
+                {
+                    for(int x = 0; x < matrix.Length; x++)
+                    {
+                        if (resultMatrixWithZeros[y][x] == 0)
+                        {
+                            ResultMatrix[y][x] = (intMatrix[y][x]).ToString();
+                            IsOccupied[string.Format("Column {0}", x)] = true;
+                            IsOccupied[string.Format("Row {0}", y)] = true;
+                            LocationAndZeroValue = DeductAll(LocationAndZeroValue, string.Format("{0},{1}", y, x), resultMatrixWithZeros);
+                        }
+                    }
+                }
+            }
+
+            return ResultMatrix;
+        }
+        */
+        #endregion
+
+        static string[][] FinalStepAssigningValues<T>(T[][]matrix, int[][] intMatrix, int[][] resultMatrixWithZeros)
+        {
+            int Length = matrix.Length;
+            string[][] ResultMatrix = new string[Length][]; // This will hold the final matrix result and return it
+            ResultMatrix = Initializer(ResultMatrix);
+
+            string[][] ExactLocationOfZeroPerRow = new string[Length][];
+            Dictionary<string, int> NumOfZeroPerLocation = new Dictionary<string, int>();
+            Dictionary<string, bool> IsOccupied = new Dictionary<string, bool>();
+
+            // Assigning the values to collections
+            for (int y = 0; y < Length; y++)
+            {
+                int zeroCounterRow = 0;
+                int zeroCounterColumn = 0;
+
+                for (int x = 0; x < intMatrix[y].Length; x++)
+                {
+                    if (resultMatrixWithZeros[y][x] == 0) zeroCounterRow++;
+                    if (resultMatrixWithZeros[x][y] == 0) zeroCounterColumn++;
+                }
+                NumOfZeroPerLocation[string.Format("Row {0}", y)] = zeroCounterRow;
+                NumOfZeroPerLocation[string.Format("Column {0}", y)] = zeroCounterColumn;
+                IsOccupied[string.Format("Row {0}", y)] = false;
+                IsOccupied[string.Format("Column {0}", y)] = false;
+                zeroCounterRow = 0;
+                zeroCounterColumn = 0;
+            }
+
+            // Assign exact location of zeros
+            for (int y = 0; y < Length; y++)
+            {
+                int size = NumOfZeroPerLocation[string.Format("Row {0}", y)];
+                string[] currentArr = new string[size];
+                for (int x = 0; x < resultMatrixWithZeros[y].Length; x++)
+                {
+                    if (resultMatrixWithZeros[y][x] != 0) continue;
+                    currentArr[size - 1] = string.Format("{0},{1}", y, x);
+                    if (size == 0) break;
+                    size--;
+                }
+
+                if (size == 0)
+                {
+                    ExactLocationOfZeroPerRow[y] = currentArr;
+                }
+            }
+
+            // Assigning to ResultMatrix
+
+            // Automatic assign when there is a row that contains 1 zero
+            if (NumOfZeroPerLocation.ContainsValue(1))
+            {
+                for (int y = 0; y < Length; y++)
+                {
+                    int zeroInRow = NumOfZeroPerLocation[string.Format("Row {0}", y)];
+                    if (zeroInRow != 1) continue;
+                    for (int x = zeroInRow; x < Length; x++)
+                    {
+                        int zeroInColumn = NumOfZeroPerLocation[string.Format("Column {0}", x)];
+
+                        if (resultMatrixWithZeros[y][x] != 0) continue;
+                        ResultMatrix[y][x] = (intMatrix[y][x]).ToString();
+                        DeductAll(resultMatrixWithZeros, NumOfZeroPerLocation, y, x);
+                        IsOccupied[string.Format("Row {0}", y)] = true;
+                        IsOccupied[string.Format("Column {0}", x)] = true;
+                        break;
+                    }
+                }
+            }
+
+            // Assign the values per each row
+            // Only one zero must exist per row and column
+            for (int y = 0; y < Length; y++)
+            {
+                if (IsOccupied[string.Format("Row {0}", y)]) continue;
+                int zeroInRow = NumOfZeroPerLocation[string.Format("Row {0}", y)];
+
+                if (zeroInRow > 1)
+                {
+                    int zeroCounter = zeroInRow;
+                    // loop side by row
+                    for (int x = 0; x < Length; x++)
+                    {
+                        if (resultMatrixWithZeros[y][x] == 0)
+                        {
+                            bool isOkToPlace = true;
+                            // loop down by column
+                            for (int i = y; i < Length; i++)
+                            {
+                                if (i == y) continue;
+                                if (resultMatrixWithZeros[i][x] != 0) continue;
+                                int rowVal = NumOfZeroPerLocation[string.Format("Row {0}", i)];
+                                if (IsOccupied[string.Format("Row {0}", i)]) continue;
+                                if (rowVal == 1)
+                                {
+                                    isOkToPlace = false;
+                                    zeroCounter--;
+                                    break;
+                                }
+                            }
+
+                            if (isOkToPlace && !IsOccupied[string.Format("Column {0}",x)] && !IsOccupied[string.Format("Row {0}", y)])
+                            {
+                                ResultMatrix[y][x] = (intMatrix[y][x]).ToString();
+                                DeductAll(resultMatrixWithZeros, NumOfZeroPerLocation, y, x);
+                                IsOccupied[string.Format("Row {0}", y)] = true;
+                                IsOccupied[string.Format("Column {0}", x)] = true;
+                                break;
+                            }
+
+                            zeroCounter--;
+                        }
+
+                        if (zeroCounter == 1) break;
+                    }
+
+                    if (zeroCounter == 1)
+                    {
+                        string[] exactLoc = ExactLocationOfZeroPerRow[y];
+                        int[] coordinates = exactLoc[0].Split(",").Select(obj => int.Parse(obj)).ToArray();
+                        DeductAll(resultMatrixWithZeros, NumOfZeroPerLocation, coordinates[0], coordinates[1]);
+
+                        ResultMatrix[coordinates[0]][coordinates[1]] = (intMatrix[coordinates[0]][coordinates[1]]).ToString();
+                    }
+                }
+                else
+                {
+                    // Automatic assign since this row contains 1 zero
+                    for (int x = 0; x < Length; x++)
+                    {
+                        if (IsOccupied[string.Format("Column {0}", x)] || IsOccupied[string.Format("Row {0}", y)]) continue;
+                        if (resultMatrixWithZeros[y][x] != 0) continue;
+                        ResultMatrix[y][x] = (intMatrix[y][x]).ToString();
+                        DeductAll(resultMatrixWithZeros, NumOfZeroPerLocation, y, x);
+                        IsOccupied[string.Format("Row {0}", y)] = true;
+                        IsOccupied[string.Format("Column {0}", x)] = true;
+                        break;
+                    }
+                }
+            }
+
+            for (int y = 0; y < Length; y++)
+            {
+                for (int x = 0; x < Length; x++)
+                {
+                    var currentVal = ResultMatrix[y][x];
+                    if (currentVal != null) continue;
+                    ResultMatrix[y][x] = "X";
+                }
+            }
+            
+
+            return ResultMatrix;
+        }
         #endregion
 
         #region -- Print Matrix --
@@ -1225,10 +1543,12 @@ namespace FinalProject_QuantitativeMethods
             theMatrix = new int[Dimension][];
             theMatrix = Initializer(theMatrix);
 
+            Console.WriteLine("");
+
             Console.WriteLine("Time to assign column names.");
             for(int i = 0; i < Dimension; i++)
             {
-                Console.Write("What is the name of column {0}?", i + 1);
+                Console.Write("What is the name of column {0}? ", i + 1);
                 columnNames[i] = Console.ReadLine()!;
             }
 
@@ -1237,16 +1557,18 @@ namespace FinalProject_QuantitativeMethods
             Console.WriteLine("Time to assign row names.");
             for (int i = 0; i < Dimension; i++)
             {
-                Console.Write("What is the name of row {0}?", i + 1);
+                Console.Write("What is the name of row {0}? ", i + 1);
                 rowNames[i] = Console.ReadLine()!;
             }
+
+            Console.WriteLine("");
 
             Console.WriteLine("Time to assign the values in the 2D array or matrix.");
             for (int y = 0; y < Dimension; y++)
             {
                 for (int x = 0; x < Dimension; x++)
                 {
-                    Console.Write("What value should be in coordinates[{0}][{1}] or in row[{0}] and column[{1}] ?", y, x);
+                    Console.Write("What value should be in coordinates[{0}][{1}] or in row[{0}] and column[{1}] ? ", y, x);
                     int value = int.Parse((Console.ReadLine()!).Trim());
                     theMatrix[y][x] = value;
                 }
@@ -1257,6 +1579,79 @@ namespace FinalProject_QuantitativeMethods
             
 
             await MethodAsync((rowNames).ToList(), (columnNames).ToList(), theMatrix);
+        }
+
+        static void DeductAll<T>(T[][] matrix, Dictionary<string, int> zeroDict, int yLoc, int xLoc)
+        {
+            // Decrement by row
+            for (int y = 0; y < matrix.Length; y++)
+            {
+                string currentLocation = string.Format("{0},{1}", y, xLoc);
+                string rowLocation = string.Format("Row {0}", y);
+
+                if (zeroDict[rowLocation] == 1) continue;
+
+                if (currentLocation == string.Format("{0},{1}", yLoc, xLoc))
+                {
+                    zeroDict[rowLocation] = 1;
+                    continue;
+                }
+
+                if (Convert.ToInt16(matrix[y][xLoc]) != 0) continue;
+
+                zeroDict[rowLocation] -= 1;
+            }
+
+            // Decrement by column
+            for (int x = 0; x < matrix.Length; x++)
+            {
+                string currentLocation = string.Format("{0},{1}", yLoc, x);
+                string columnLocation = string.Format("Column {0}", x);
+
+                if (zeroDict[columnLocation] == 1) continue;
+
+                if (currentLocation == string.Format("{0},{1}", yLoc, xLoc))
+                {
+                    zeroDict[columnLocation] = 1;
+                    continue;
+                }
+
+                if (Convert.ToInt16(matrix[yLoc][x]) != 0) continue;
+
+                zeroDict[columnLocation] -= 1;
+            }
+        }
+
+        static Dictionary<string, int> DeductAll(Dictionary<string, int> zeroAndLocation, string exactLocation, int[][] matrix)
+        {
+            Dictionary<string, int> zeroAndLocations = zeroAndLocation;
+            string[] location = exactLocation.Split(',');
+
+            for (int y = 0; y < matrix.Length; y++)
+            {
+                if(y == Convert.ToInt16(location[0]))
+                {
+                    for(int x = 0; x < matrix[y].Length; x++)
+                    {
+                        if (matrix[y][x] == 0)
+                        {
+                            for (int i = 0; i < matrix.Length; i++)
+                            {
+                                if (i == Convert.ToInt16(location[0])) continue;
+                                if (matrix[i][x] == 0)
+                                {
+                                    zeroAndLocation[string.Format("Row {0}", i)] -= 1;
+                                }
+                            }
+                            break;
+                        }
+                        //break;
+                    }
+                    break;
+                }
+            }
+
+            return zeroAndLocation;
         }
 
         #endregion
