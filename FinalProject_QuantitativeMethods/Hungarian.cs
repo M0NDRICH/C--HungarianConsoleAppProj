@@ -437,9 +437,13 @@ namespace FinalProject_QuantitativeMethods
                 keys = value.ToString().Split(',');
 
                 int targetedValue = intersectedValues[value];
-                Console.WriteLine(targetedValue);
                 //add the min value to the corner points or the intersected points
                 step2arr[Convert.ToInt16(keys[0])][Convert.ToInt16(keys[1])] = targetedValue +  minValue;
+            }
+            Console.WriteLine("");
+            foreach (var value in intersectedValues)
+            {
+                Console.WriteLine(value.Key + " " + value.Value);
             }
             Console.WriteLine(" ");
             for (int i = 0; i < arr.Length; i++)
@@ -787,9 +791,12 @@ namespace FinalProject_QuantitativeMethods
                 {
                     int zeroInRow = NumOfZeroPerLocation[string.Format("Row {0}", y)];
                     if (zeroInRow != 1) continue;
-                    for (int x = zeroInRow; x < Length; x++)
+                    for (int x = 0; x < Length; x++)
                     {
                         int zeroInColumn = NumOfZeroPerLocation[string.Format("Column {0}", x)];
+
+                        if (IsOccupied[string.Format("Row {0}", y)] == true) continue;
+                        if (IsOccupied[string.Format("Column {0}", x)] == true) continue;
 
                         if (resultMatrixWithZeros[y][x] != 0) continue;
                         ResultMatrix[y][x] = (intMatrix[y][x]).ToString();
@@ -1248,29 +1255,45 @@ namespace FinalProject_QuantitativeMethods
                             switch (i)
                             {
                                 case 0:
-                                    if ((arr2D[y][x + 1]!).ToString() == "X" && (arr2D[y][arr2D.Length - 1]!.ToString() == "X") &&
-                                        (arr2D[y + 1][x]!).ToString() == "X" && (arr2D[arr2D.Length - 1][x]!.ToString() == "X"))
+                                    //if ((arr2D[y][x + 1]!).ToString() == "X" && (arr2D[y][arr2D.Length - 1]!.ToString() == "X") &&
+                                    //    (arr2D[y + 1][x]!).ToString() == "X" && (arr2D[arr2D.Length - 1][x]!.ToString() == "X"))
+                                    //{
+                                    //    Values.Add(locationValue, Convert.ToInt16(origArr2D[y][x]));
+                                    //}
+                                    if (ColumnCheck(arr2D, x) && RowCheck(arr2D, y))
                                     {
                                         Values.Add(locationValue, Convert.ToInt16(origArr2D[y][x]));
                                     }
                                     break;
                                 case 1:
-                                    if ((arr2D[y][x - 1]!).ToString() == "X" && (arr2D[y][0]!.ToString() == "X")&&
-                                        (arr2D[y + 1][arr2D.Length - 1]!).ToString() == "X" && (arr2D[arr2D.Length - 1][arr2D.Length-1])!.ToString() == "X")
+                                    //if ((arr2D[y][x - 1]!).ToString() == "X" && (arr2D[y][0]!.ToString() == "X")&&
+                                    //    (arr2D[y + 1][arr2D.Length - 1]!).ToString() == "X" && (arr2D[arr2D.Length - 1][arr2D.Length-1])!.ToString() == "X")
+                                    //{
+                                    //    Values.Add(locationValue, Convert.ToInt16(origArr2D[y][x]));
+                                    //}
+                                    if (ColumnCheck(arr2D, x) && RowCheck(arr2D, y))
                                     {
                                         Values.Add(locationValue, Convert.ToInt16(origArr2D[y][x]));
                                     }
                                     break;
                                 case 2:
-                                    if ((arr2D[arr2D.Length - 2][x]!).ToString() == "X" && (arr2D[0][x])!.ToString() == "X" &&
-                                        (arr2D[y][x+1]!).ToString() == "X" && (arr2D[y][arr2D.Length - 1])!.ToString() == "X")
+                                    //if ((arr2D[arr2D.Length - 2][x]!).ToString() == "X" && (arr2D[0][x])!.ToString() == "X" &&
+                                    //    (arr2D[y][x+1]!).ToString() == "X" && (arr2D[y][arr2D.Length - 1])!.ToString() == "X")
+                                    //{
+                                    //    Values.Add(locationValue, Convert.ToInt16(origArr2D[y][x]));
+                                    //}
+                                    if (ColumnCheck(arr2D, x) && RowCheck(arr2D, y))
                                     {
                                         Values.Add(locationValue, Convert.ToInt16(origArr2D[y][x]));
                                     }
                                     break;
                                 case 3:
-                                    if ((arr2D[arr2D.Length - 2][arr2D.Length - 1]!).ToString() == "X" && (arr2D[0][arr2D.Length-1])!.ToString() == "X"&&
-                                        (arr2D[y][x - 1]!).ToString() == "X" && (arr2D[y][0])!.ToString() == "X")
+                                    //if ((arr2D[arr2D.Length - 2][arr2D.Length - 1]!).ToString() == "X" && (arr2D[0][arr2D.Length-1])!.ToString() == "X"&&
+                                    //    (arr2D[y][x - 1]!).ToString() == "X" && (arr2D[y][0])!.ToString() == "X")
+                                    //{
+                                    //    Values.Add(locationValue, Convert.ToInt16(origArr2D[y][x]));
+                                    //}
+                                    if (ColumnCheck(arr2D, x) && RowCheck(arr2D, y))
                                     {
                                         Values.Add(locationValue, Convert.ToInt16(origArr2D[y][x]));
                                     }
@@ -1282,32 +1305,48 @@ namespace FinalProject_QuantitativeMethods
                     //check the side locations
                     if(x > 0 && x < arr2D.Length - 1 && y == 0)
                     {
-                        if ((arr2D[y][0]!).ToString() == "X" && (arr2D[y][arr2D.Length - 1]!).ToString() == "X" &&
-                            (arr2D[arr2D.Length - 1][x]!).ToString() == "X")
+                        //if ((arr2D[y][0]!).ToString() == "X" && (arr2D[y][arr2D.Length - 1]!).ToString() == "X" &&
+                        //    (arr2D[arr2D.Length - 1][x]!).ToString() == "X")
+                        //{
+                        //    Values.Add(locationValue, Convert.ToInt16(origArr2D[y][x]));
+                        //}
+                        if (ColumnCheck(arr2D, x) && RowCheck(arr2D, y))
                         {
                             Values.Add(locationValue, Convert.ToInt16(origArr2D[y][x]));
                         }
                     }
                     else if ( y > 0 && y < arr2D.Length - 1 && x == 0)
                     {
-                        if ((arr2D[0][x]!).ToString() == "X" && (arr2D[y][arr2D.Length - 1]!).ToString() == "X" &&
-                            (arr2D[arr2D.Length - 1][x]!).ToString() == "X")
+                        //if ((arr2D[0][x]!).ToString() == "X" && (arr2D[y][arr2D.Length - 1]!).ToString() == "X" &&
+                        //    (arr2D[arr2D.Length - 1][x]!).ToString() == "X")
+                        //{
+                        //    Values.Add(locationValue, Convert.ToInt16(origArr2D[y][x]));
+                        //}
+                        if (ColumnCheck(arr2D, x) && RowCheck(arr2D, y))
                         {
                             Values.Add(locationValue, Convert.ToInt16(origArr2D[y][x]));
                         }
                     }
                     else if ( y > 0 && y < arr2D.Length - 1 && x == arr2D.Length - 1)
                     {
-                        if ((arr2D[0][x]!).ToString() == "X" && (arr2D[y][0]!).ToString() == "X" &&
-                            (arr2D[arr2D.Length - 1][x]!).ToString() == "X")
+                        //if ((arr2D[0][x]!).ToString() == "X" && (arr2D[y][0]!).ToString() == "X" &&
+                        //    (arr2D[arr2D.Length - 1][x]!).ToString() == "X")
+                        //{
+                        //    Values.Add(locationValue, Convert.ToInt16(origArr2D[y][x]));
+                        //}
+                        if (ColumnCheck(arr2D, x) && RowCheck(arr2D, y))
                         {
                             Values.Add(locationValue, Convert.ToInt16(origArr2D[y][x]));
                         }
                     }
                     else if ( x > 0 && x < arr2D.Length - 1 && y == arr2D.Length - 1)
                     {
-                        if ((arr2D[y][0]!).ToString() == "X" && (arr2D[0][x]!).ToString() == "X" &&
-                            (arr2D[y][arr2D.Length - 1]!).ToString() == "X")
+                        //if ((arr2D[y][0]!).ToString() == "X" && (arr2D[0][x]!).ToString() == "X" &&
+                        //    (arr2D[y][arr2D.Length - 1]!).ToString() == "X")
+                        //{
+                        //    Values.Add(locationValue, Convert.ToInt16(origArr2D[y][x]));
+                        //}
+                        if (ColumnCheck(arr2D, x) && RowCheck(arr2D, y))
                         {
                             Values.Add(locationValue, Convert.ToInt16(origArr2D[y][x]));
                         }
@@ -1317,8 +1356,12 @@ namespace FinalProject_QuantitativeMethods
                     if ( x > 0 && x < arr2D.Length - 1 &&
                         y > 0 && y < arr2D.Length - 1)
                     {
-                        if ((arr2D[0][x]!).ToString() == "X" && (arr2D[arr2D.Length - 1][x]!).ToString() == "X" &&
-                            (arr2D[y][0]!).ToString() == "X" && (arr2D[y][arr2D.Length - 1]!).ToString() == "X")
+                        //if ((arr2D[0][x]!).ToString() == "X" && (arr2D[arr2D.Length - 1][x]!).ToString() == "X" &&
+                        //    (arr2D[y][0]!).ToString() == "X" && (arr2D[y][arr2D.Length - 1]!).ToString() == "X")
+                        //{
+                        //    Values.Add(locationValue, Convert.ToInt16(origArr2D[y][x]));
+                        //}
+                        if (ColumnCheck(arr2D, x) && RowCheck(arr2D, y))
                         {
                             Values.Add(locationValue, Convert.ToInt16(origArr2D[y][x]));
                         }
@@ -1329,6 +1372,46 @@ namespace FinalProject_QuantitativeMethods
             }
 
             return Values;
+        }
+
+        static bool RowCheck<T>(T[][] matrix, int yLoc)
+        {
+            bool isValid = true;
+
+            for (int y = 0; y < matrix.Length; y++)
+            {
+                if (y != yLoc) continue; // Skip if target loc is not the current y coordinate
+                for (int x = 0; x < matrix[y].Length; x++)
+                {
+                    if ((matrix[y][x])?.ToString() != "X")
+                    {
+                        isValid = false;
+                        break;
+                    }
+                }
+            }
+
+            return isValid;
+        }
+
+        static bool ColumnCheck<T>(T[][] matrix, int xLoc)
+        {
+            bool isValid = true;
+
+            for (int y = 0; y < matrix.Length; y++)
+            {
+                if (y != xLoc) continue; // Skip if target loc is not the current x coordinate
+                for (int x = 0; x < matrix[y].Length; x++)
+                {
+                    if ((matrix[x][y])?.ToString() != "X")
+                    {
+                        isValid = false;
+                        break;
+                    }
+                }
+            }
+
+            return isValid;
         }
 
         /// <summary>
