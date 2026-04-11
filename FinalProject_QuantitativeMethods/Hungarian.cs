@@ -13,6 +13,7 @@ namespace FinalProject_QuantitativeMethods
         static int[][]? step1Matrix;
         static int[][]? step2Matrix;
         static string[][]? step3Matrix;
+        static string[][]? step3MatrixCoveredByRow;
         static string[][]? tempArr;
 
         public static async Task MethodAsync<T>(List<T> rowNames, List<T> columnNames, int[][] arr)
@@ -23,7 +24,8 @@ namespace FinalProject_QuantitativeMethods
             orgMatrix = new int[_row][]; // holds the actual matrix
             step2Matrix = new int[_row][];
             step2Matrix = new int[_row][];
-            step3Matrix = new string[_row][];
+            step3Matrix = new string[_row][]; // holds the covered matrix, covering by column first
+            step3MatrixCoveredByRow = new string[_row][]; // holds the covered matrix, covering by row instead of column first
             tempArr = new string[_row][]; // holds the matrix with both horizontal and vertical lines
 
             for (int y = 0; y < _row; y++)
@@ -52,34 +54,40 @@ namespace FinalProject_QuantitativeMethods
             PrintMatrix(rowNames, columnNames, step2Matrix);
 
             step3Matrix = await Step3Async(step2Matrix, rowNames);
+            step3MatrixCoveredByRow = await Step3CoverByRowAsync(step2Matrix, rowNames);
             PrintSeparator(rowNames, columnNames);
             Console.WriteLine("Step 3");
             PrintTempMatrix(rowNames, columnNames, step3Matrix);
 
-            bool isNumberOfLinesEnough = CountTheCoverLines(step3Matrix, arr.Length);
+            bool isNumberOfLinesEnoughByColumn = CountTheCoverLines(step3Matrix, arr.Length);
+            bool isNumberOfLinesEnoughByRow = CountTheCoverLines(step3MatrixCoveredByRow, arr.Length);
 
             // if number of lines is not enough proceed to step 4
-            if (!isNumberOfLinesEnough)
+            if (!isNumberOfLinesEnoughByColumn || !isNumberOfLinesEnoughByRow)
             {
                 //initialize
                 StoredResults.stringMatrix = new string[_row][];
+                StoredResults.stringMatrix2 = new string[_row][];
                 StoredResults.intMatrix = new int[_row][];
                 StoredResults.stringMatrix.Initialize();
+                StoredResults.stringMatrix2.Initialize();
                 StoredResults.intMatrix.Initialize();
 
                 PrintSeparator(rowNames, columnNames);
                 Console.WriteLine("Step 4");
                 StoredResults.stringMatrix = await Step4Async(step3Matrix, step2Matrix, rowNames, columnNames);
 
-                isNumberOfLinesEnough = CountTheCoverLines(StoredResults.stringMatrix, arr.Length);
+                isNumberOfLinesEnoughByColumn = CountTheCoverLines(StoredResults.stringMatrix, arr.Length);
+                isNumberOfLinesEnoughByRow = CountTheCoverLines(StoredResults.stringMatrix2!, arr.Length);
 
                 // if number of lines is not enough go back again to step 4
-                while (!isNumberOfLinesEnough)
+                while (!isNumberOfLinesEnoughByColumn || !isNumberOfLinesEnoughByRow)
                 {
                     StoredResults.stringMatrix = await Step4Async(StoredResults.stringMatrix, StoredResults.intMatrix, rowNames, columnNames);
                     
-                    isNumberOfLinesEnough = CountTheCoverLines(StoredResults.stringMatrix, arr.Length);
-                    if (isNumberOfLinesEnough) break;
+                    isNumberOfLinesEnoughByColumn = CountTheCoverLines(StoredResults.stringMatrix, arr.Length);
+                    isNumberOfLinesEnoughByRow = CountTheCoverLines(StoredResults.stringMatrix2!, arr.Length);
+                    if (isNumberOfLinesEnoughByColumn && isNumberOfLinesEnoughByRow) break;
                 }
 
                 var result = FinalStepAssigningValues(StoredResults.stringMatrix, orgMatrix, StoredResults.intMatrix);
@@ -474,6 +482,7 @@ namespace FinalProject_QuantitativeMethods
             StoredResults.intMatrix = step2arr;
 
             Arr2D = await Step3Async(step2arr, rowNames);
+            StoredResults.stringMatrix2 = await Step3CoverByRowAsync(step2arr, rowNames);
 
             Console.WriteLine("Covered Matrix");
             PrintTempMatrix(rowNames, columnNames, Arr2D);
@@ -891,6 +900,173 @@ namespace FinalProject_QuantitativeMethods
             
 
             return ResultMatrix;
+        }
+
+        public static async Task<string[][]> Step3CoverByRowAsync<T>(int[][] arr, List<T> rowNames)
+        {
+            // for number of zero per row or column
+            Dictionary<string, int> values = new Dictionary<string, int>();
+
+            // the absolute coordinates of zero 
+            Dictionary<string, int> zeroLocs = new Dictionary<string, int>();
+
+            // for storing bool if the zero is covered or not by the vertical or horizontal line
+            Dictionary<string, bool> isValueCover = new Dictionary<string, bool>();
+
+            string[][] tempMatrix = new string[arr.Length][]; // this will hold the copies of the values of matrix
+
+            int numberOfLines = rowNames.Count;
+            //int currentNumberOfLines = 0;
+            int currentValue;
+            int numOfValues;
+            int zeroCounter = 0;
+
+            // for initialization
+            for (int i = 0; i < arr.Length; i++)
+            {
+                tempMatrix[i] = new string[arr.Length];
+            }
+
+            //for counting zero in rows
+            for (int i = 0; i < arr.Length; i++)
+            {
+                for (int j = 0; j < numberOfLines; j++)
+                {
+                    currentValue = arr[i][j];
+                    if (currentValue == 0)
+                    {
+                        var location = string.Format("{0},{1}", i, j);
+                        zeroLocs[location] = currentValue;
+                        zeroCounter++;
+                    }
+                }
+                string key = string.Format("Row {0}", i);
+                values[key] = zeroCounter;
+                zeroCounter = 0; //Reset the counter for each row
+            }
+
+            //for counting zero in columns
+            for (int i = 0; i < arr.Length; i++)
+            {
+                for (int j = 0; j < numberOfLines; j++)
+                {
+                    currentValue = arr[j][i];
+                    if (currentValue == 0) zeroCounter++;
+                }
+                string key = string.Format("Column {0}", i);
+                values[key] = zeroCounter;
+                zeroCounter = 0; //Reset the counter for each column
+            }
+
+            numOfValues = values.Count();
+
+            bool isDone = false;
+
+
+            while (!isDone)
+            {
+
+                //Covering by row
+                for (int x = 0; x < arr.Length; x++)
+                {
+                    string currentRow = string.Format("Row {0}", x);
+                    string currentColumn = string.Format("Column {0}", x);
+                    int numberOfZeroInRow = values[currentRow];
+                    int numberOfZeroInColumn = values[currentColumn];
+
+                    if (numberOfZeroInRow >= (arr.Length % 2 == 0 ? arr.Length / 2 : (arr.Length / 2) + 1))
+                    {
+                        for (int y = 0; y < arr.Length; y++)
+                        {
+                            tempMatrix[x][y] = "X";
+                            if (arr[x][y] == 0)
+                            {
+                                //values[currentRow] = numberOfZeroInRow - 1;
+                                values[string.Format("Column {0}", y)] = values[string.Format("Column {0}", y)] - 1;
+                            }
+                        }
+                    }
+                }
+
+                //Covering by column
+                for (int y = 0; y < arr.Length; y++)
+                {
+                    string currentColumn = string.Format("Column {0}", y);
+                    int numberOfZeroInColumn = values[currentColumn];
+
+                    if (numberOfZeroInColumn >= (arr.Length % 2 == 0 ? arr.Length / 2 : (arr.Length / 2) + 1))
+                    {
+                        for (int x = 0; x < arr.Length; x++)
+                        {
+                            string currentRow = string.Format("Row {0}", x);
+                            int numberOfZeroInRow = values[currentRow];
+                            if (arr[x][y] == 0)
+                            {
+                                values[string.Format("Row {0}", x)] = values[string.Format("Row {0}", x)] - 1;
+                                //values[currentColumn] = numberOfZeroInColumn - 1;
+                            }
+
+                            tempMatrix[x][y] = "X";
+                        }
+                    }
+                }
+
+                //Assign org values to tempMatrix
+                for (int y = 0; y < arr.Length; y++)
+                {
+                    for (int x = 0; x < arr.Length; x++)
+                    {
+                        if (tempMatrix[y][x] == null) tempMatrix[y][x] = (arr[y][x]).ToString();
+                    }
+                }
+
+                // check if theres still zeros remaining in the matrix
+                for (int y = 0; y < arr.Length; y++)
+                {
+                    string currentColumn = string.Format("Column {0}", y);
+                    int valueInColumn = values[currentColumn];
+
+                    if (valueInColumn > 1)
+                    {
+                        for (int x = 0; x < arr.Length; x++)
+                        {
+                            tempMatrix[x][y] = "X";
+                        }
+                    }
+                }
+                for (int y = 0; y < arr.Length; y++)
+                {
+                    string currentRow = string.Format("Row {0}", y);
+                    int valueInRow = values[currentRow];
+
+                    if (valueInRow > 1)
+                    {
+                        for (int x = 0; x < arr.Length; x++)
+                        {
+                            tempMatrix[y][x] = "X";
+                        }
+                    }
+                }
+
+                if (FindVal(tempMatrix, 0))
+                {
+                    for (int y = 0; y < arr.Length; y++)
+                    {
+                        for (int x = 0; x < arr[y].Length; x++)
+                        {
+                            if (tempMatrix[y][x] == "0")
+                            {
+                                for (int x2 = 0; x2 < arr[y].Length; x2++) tempMatrix[y][x2] = "X";
+                            }
+                        }
+                    }
+                }
+                isDone = true;
+            }
+
+            StoredResults.intMatrix = arr;
+
+            return await Task.FromResult(tempMatrix);
         }
         #endregion
 
@@ -1755,7 +1931,8 @@ namespace FinalProject_QuantitativeMethods
 
     public static class StoredResults
     {
-        public static string[][]? stringMatrix;
+        public static string[][]? stringMatrix; //matrix covered by column first
+        public static string[][]? stringMatrix2; //matrix covered by row first
         public static int[][]? intMatrix;
     }
 }
