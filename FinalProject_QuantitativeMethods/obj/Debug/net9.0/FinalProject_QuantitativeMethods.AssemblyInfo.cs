@@ -14,7 +14,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("FinalProject_QuantitativeMethods")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+b0a9e552eb59e7a07da814d1b7e57af64b959b9c")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+94031b2ee1fb3069e2ffc7aa26a3a6533b377770")]
 [assembly: System.Reflection.AssemblyProductAttribute("FinalProject_QuantitativeMethods")]
 [assembly: System.Reflection.AssemblyTitleAttribute("FinalProject_QuantitativeMethods")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]

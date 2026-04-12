@@ -743,7 +743,7 @@ namespace FinalProject_QuantitativeMethods
         */
         #endregion
 
-        static string[][] FinalStepAssigningValues<T>(T[][]matrix, int[][] intMatrix, int[][] resultMatrixWithZeros)
+        static string[][] FinalStepAssigningValues<T>(T[][] matrix, int[][] intMatrix, int[][] resultMatrixWithZeros)
         {
             int Length = matrix.Length;
             string[][] ResultMatrix = new string[Length][]; // This will hold the final matrix result and return it
